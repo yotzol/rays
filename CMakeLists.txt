@@ -8,7 +8,7 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_CUDA_ARCHITECTURES 75)
+set(CMAKE_CUDA_ARCHITECTURES 75)  # Change this to match your GPU architecture
 
 find_package(PNG REQUIRED)
 find_package(CUDAToolkit REQUIRED)

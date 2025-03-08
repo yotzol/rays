@@ -33,6 +33,12 @@ Without direnv:
 $ nix develop
 ```
 
+### 3. Set CUDA architecture flag
+Edit the `CMakeLists.txt` file and set the appropriate architecture flag for your GPU:
+```
+set(CMAKE_CUDA_ARCHITECTURES 75)  # Change this to match your GPU architecture
+```
+
 ## Building
 ```
 $ mkdir build
