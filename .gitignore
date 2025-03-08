@@ -10,6 +10,9 @@
 
 !CMakeLists.txt
 
+!renders/*.png
+!renders/
+
 !src/*.cu
 !src/
 !include/*.cuh
