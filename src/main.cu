@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-// final scene from the first book
-void final_scene(Scene &world) {
+// final scene from the first book, but with moving spheres
+void moving_spheres(Scene &world) {
         // ground material
         int ground_material = world.add_material(Material(LAMBERTIAN, Vec3(0.5f, 0.5f, 0.5f)));
 
@@ -41,6 +41,8 @@ void final_scene(Scene &world) {
                                                     ((float)rand() / RAND_MAX) * ((float)rand() / RAND_MAX),
                                                     ((float)rand() / RAND_MAX) * ((float)rand() / RAND_MAX));
                                         sphere_material = world.add_material(Material(LAMBERTIAN, albedo));
+                                        Vec3 center2 = center + Vec3(0, random_float(0.0f, 0.5f), 0.0f);
+                                        world.add_sphere(Sphere(center, center2, 0.2f, sphere_material));
                                 } else if (choose_mat < 0.95f) {
                                         // metal
                                         Vec3 albedo(0.5f * (1 + ((float)rand() / RAND_MAX)),
@@ -48,13 +50,14 @@ void final_scene(Scene &world) {
                                                     0.5f * (1 + ((float)rand() / RAND_MAX)));
                                         float fuzz      = 0.5f * ((float)rand() / RAND_MAX);
                                         sphere_material = world.add_material(Material(METAL, albedo, fuzz));
+                                        world.add_sphere(Sphere(center, 0.2f, sphere_material));
                                 } else {
                                         // glass
                                         sphere_material = world.add_material(
                                                 Material(DIELECTRIC, Vec3(1.0f, 1.0f, 1.0f), 0.0f, 1.5f));
+                                        world.add_sphere(Sphere(center, 0.2f, sphere_material));
                                 }
 
-                                world.add_sphere(Sphere(center, 0.2f, sphere_material));
                         }
                 }
         }
@@ -84,7 +87,7 @@ int main() {
 
         // create a test scene first
         Scene world;
-        final_scene(world);
+        moving_spheres(world);
 
         printf("Created scene with %d spheres and %d materials\n", world.num_spheres, world.num_materials);
 

@@ -50,7 +50,7 @@ class __align__(16) Material {
                 // catch degenerate scatter direction
                 if (scatter_direction.length_squared() < 0.001f) scatter_direction = rec.normal;
 
-                scattered   = Ray(rec.point, scatter_direction);
+                scattered   = Ray(rec.point, scatter_direction, ray_in.time);
                 attenuation = albedo;
                 return true;
         }
@@ -58,7 +58,7 @@ class __align__(16) Material {
         __device__ bool scatter_metal(const Ray &ray_in, const HitRecord &rec, Vec3 &attenuation, Ray &scattered,
                                       RandState *rand_state) const {
                 Vec3 reflected = reflect(normalize(ray_in.direction), rec.normal);
-                scattered      = Ray(rec.point, reflected + random_in_unit_sphere(rand_state) * fuzz);
+                scattered      = Ray(rec.point, reflected + random_in_unit_sphere(rand_state) * fuzz, ray_in.time);
                 attenuation    = albedo;
                 return (dot(scattered.direction, rec.normal) > 0);
         }
@@ -80,7 +80,7 @@ class __align__(16) Material {
                 else
                         direction = refract(unit_direction, rec.normal, refraction_ratio);
 
-                scattered = Ray(rec.point, direction);
+                scattered = Ray(rec.point, direction, ray_in.time);
                 return true;
         }
 };

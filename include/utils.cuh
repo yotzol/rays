@@ -17,9 +17,17 @@ __device__ __forceinline__ float random_float(RandState *state) {
         return curand_uniform(state);
 }
 
+__host__ __forceinline__ float random_float() {
+        return (float)rand() / RAND_MAX;
+}
+
 // random float in [min,max)
 __device__ __forceinline__ float random_float(float min, float max, RandState *state) {
         return min + (max - min) * random_float(state);
+}
+
+__host__ __forceinline__ float random_float(float min, float max) {
+        return min + (max - min) * random_float();
 }
 
 __device__ Vec3 random_in_unit_sphere(RandState *state) {

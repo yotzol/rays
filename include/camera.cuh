@@ -51,7 +51,9 @@ class __align__(16) Camera {
                         rd = u * rd.x + v * rd.y;
                 }
 
-                return Ray(origin + rd, lower_left_corner + horizontal * s + vertical * t - origin - rd);
+                float time = random_float(rand_state);
+
+                return Ray(origin + rd, lower_left_corner + horizontal * s + vertical * t - origin - rd, time);
         }
 };
 
