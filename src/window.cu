@@ -2,6 +2,7 @@
 #include "camera.cuh"
 #include "renderer.cuh"
 #include "scene.cuh"
+#include "gui.cuh"
 
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
@@ -26,6 +27,8 @@ void create_window(const int width, const int height) {
         }
 
         glfwMakeContextCurrent(window);
+
+        gui::setup_imgui();
 }
 
 static bool handle_camera_movement(Camera &camera);
@@ -66,6 +69,8 @@ void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
                 glBindTexture(GL_TEXTURE_2D, 0);
 
                 glDisable(GL_TEXTURE_2D);
+
+                gui::render_imgui(renderer, camera);
 
                 glfwSwapBuffers(window);
         }
