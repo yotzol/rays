@@ -1,9 +1,6 @@
-#ifndef PNG_OUTPUT_CUH
-#define PNG_OUTPUT_CUH
+#pragma once
 
 #include <png.h>
 
-// save a framebuffer to a PNG file
-bool save_png(const char *filename, unsigned int *framebuffer, int width, int height);
-
-#endif  // PNG_OUTPUT_CUH
+// save a framebuffer to a png file
+__host__ bool save_png(const char *filename, unsigned int *framebuffer, int width, int height);

@@ -1,5 +1,4 @@
-#ifndef MATERIAL_CUH
-#define MATERIAL_CUH
+#pragma once
 
 #include "ray.cuh"
 #include "utils.cuh"
@@ -22,9 +21,9 @@ enum MaterialType { LAMBERTIAN, METAL, DIELECTRIC };
 class __align__(16) Material {
        public:
         MaterialType type;
-        Vec3 albedo;    // for Lambertian and Metal
-        float fuzz;     // for Metal (0 = no fuzz, 1 = max fuzz)
-        float ref_idx;  // for Dielectric
+        Vec3 albedo;    // for lambertian and metal
+        float fuzz;     // for metal (0 = no fuzz, 1 = max fuzz)
+        float ref_idx;  // for dielectric
 
         __host__ __device__ Material() : type(LAMBERTIAN), fuzz(0), ref_idx(1) {}
 
@@ -84,5 +83,3 @@ class __align__(16) Material {
                 return true;
         }
 };
-
-#endif  // MATERIAL_CUH

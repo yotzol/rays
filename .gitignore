@@ -13,7 +13,8 @@
 !renders/*.png
 !renders/
 
-!src/*.cu
 !src/
-!include/*.cuh
 !include/
+
+!*.cu
+!*.cuh

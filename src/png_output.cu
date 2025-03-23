@@ -1,8 +1,9 @@
 #include "png_output.cuh"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-bool save_png(const char *filename, unsigned int *framebuffer, int width, int height) {
+__host__ bool save_png(const char *filename, unsigned int *framebuffer, int width, int height) {
         // open file for writing (binary mode)
         FILE *fp = fopen(filename, "wb");
         if (!fp) {
@@ -38,7 +39,7 @@ bool save_png(const char *filename, unsigned int *framebuffer, int width, int he
         // set output
         png_init_io(png_ptr, fp);
 
-        // write header (8-bit RGB color)
+        // write header (8-bit rgb color)
         png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
                      PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
         png_write_info(png_ptr, info_ptr);
@@ -67,13 +68,13 @@ bool save_png(const char *filename, unsigned int *framebuffer, int width, int he
                 }
         }
 
-        // fill row data from framebuffer (RGBA -> RGB)
+        // fill row data from framebuffer (rgba -> rgb)
         for (int y = 0; y < height; y++) {
                 png_bytep row = row_pointers[y];
                 for (int x = 0; x < width; x++) {
                         unsigned int pixel = framebuffer[y * width + x];
 
-                        // extract RGB components (RGBA format with A in most significant byte)
+                        // extract rgb components (rgba format with a in most significant byte)
                         unsigned char r = pixel & 0xFF;
                         unsigned char g = (pixel >> 8) & 0xFF;
                         unsigned char b = (pixel >> 16) & 0xFF;

@@ -1,5 +1,4 @@
-#ifndef RAY_CUH
-#define RAY_CUH
+#pragma once
 
 #include "vec3.cuh"
 
@@ -10,6 +9,7 @@ class __align__(16) Ray {
         float time;
 
         __host__ __device__ Ray() : time(0) {}
+
         __host__ __device__ Ray(const Vec3 &origin, const Vec3 &direction, const float t = 0)
             : origin(origin), direction(direction), time(t) {}
 
@@ -17,5 +17,3 @@ class __align__(16) Ray {
                 return origin + direction * t;
         }
 };
-
-#endif  // RAY_CUH
