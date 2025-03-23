@@ -21,7 +21,6 @@
             cmake                     # build system
             ninja                     # fast builds
             libpng                    # PNG output
-            imgui                     # user interface
             glfw                      # window and opengl context management
           ];
           # use gcc13 instead of system's gcc

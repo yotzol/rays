@@ -12,15 +12,29 @@ set(CMAKE_CUDA_ARCHITECTURES 75)  # Change this to match your GPU architecture
 
 find_package(PNG         REQUIRED)
 find_package(CUDAToolkit REQUIRED)
-find_package(Imgui       REQUIRED)
 find_package(OpenGL      REQUIRED)
 find_package(glfw3       REQUIRED)
 find_package(GLEW        REQUIRED)
+
+add_library(imgui STATIC
+    external/imgui/imgui.cpp
+    external/imgui/imgui_draw.cpp
+    external/imgui/imgui_tables.cpp
+    external/imgui/imgui_widgets.cpp
+    external/imgui/backends/imgui_impl_glfw.cpp
+    external/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui PUBLIC
+    external/imgui
+    external/imgui/backends
+)
 
 include_directories(
     ${PNG_INCLUDE_DIRS}
     ${CUDAToolkit_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
+    ${Imgui_INCLUDE_DIRS}
     include
 )
 
@@ -36,6 +50,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenGL::GL
     glfw
     GLEW::GLEW
+    imgui
 )
 
 target_compile_options(${PROJECT_NAME} 

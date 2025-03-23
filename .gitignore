@@ -16,5 +16,8 @@
 !src/
 !include/
 
+!external/
+!external/imgui/
+
 !*.cu
 !*.cuh
