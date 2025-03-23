@@ -1,14 +1,34 @@
-#ifndef UTILS_CUH
-#define UTILS_CUH
+#pragma once
 
 #include "vec3.cuh"
+
 #include <curand_kernel.h>
 
 typedef curandState RandState;
 
-const float FMAX = std::numeric_limits<float>::max();
+// cuda error checking macro
+#define CHECK_CUDA_ERROR(call)                                                                                         \
+        {                                                                                                              \
+                cudaError_t err = call;                                                                                \
+                if (err != cudaSuccess) {                                                                              \
+                        fprintf(stderr, "CUDA error in %s at line %d: %s\n", __FILE__, __LINE__,                       \
+                                cudaGetErrorString(err));                                                              \
+                        exit(EXIT_FAILURE);                                                                            \
+                }                                                                                                      \
+        }
 
-__device__ void random_init(RandState *state, int seed, int index) {
+const float FMAX = std::numeric_limits<float>::max();
+const float PI   = 3.141592653589f;
+
+__host__ __device__ __forceinline__ float degrees(float radians) {
+        return radians * 180.0f / PI;
+}
+
+__host__ __device__ __forceinline__ float radians(float degrees) {
+        return degrees * PI / 180.0f;
+}
+
+__device__ __forceinline__ void random_init(RandState *state, int seed, int index) {
         curand_init(seed, index, 0, state);
 }
 
@@ -30,7 +50,7 @@ __host__ __forceinline__ float random_float(float min, float max) {
         return min + (max - min) * random_float();
 }
 
-__device__ Vec3 random_in_unit_sphere(RandState *state) {
+__device__ __forceinline__ Vec3 random_in_unit_sphere(RandState *state) {
         while (true) {
                 Vec3 p(random_float(-1, 1, state), random_float(-1, 1, state), random_float(-1, 1, state));
                 if (p.length_squared() < 1) return p;
@@ -38,24 +58,24 @@ __device__ Vec3 random_in_unit_sphere(RandState *state) {
 }
 
 // generate a random vector in a unit disk (for depth of field)
-__device__ Vec3 random_in_unit_disk(RandState *state) {
+__device__ __forceinline__ Vec3 random_in_unit_disk(RandState *state) {
         while (true) {
                 Vec3 p(random_float(-1, 1, state), random_float(-1, 1, state), 0);
                 if (p.length_squared() < 1) return p;
         }
 }
 
-// generate a random unit vector (for Lambertian scattering)
-__device__ Vec3 random_unit_vector(RandState *state) {
+// generate a random unit vector (for lambertian scattering)
+__device__ __forceinline__ Vec3 random_unit_vector(RandState *state) {
         return normalize(random_in_unit_sphere(state));
 }
 
-// generate a reflected vector (for Dielectric)
+// generate a reflected vector (for dielectric)
 __device__ __forceinline__ Vec3 reflect(const Vec3 &v, const Vec3 &n) {
         return v - n * 2 * dot(v, n);
 }
 
-// refraction calculation (for Dielectric)
+// refraction calculation (for dielectric)
 __device__ __forceinline__ Vec3 refract(const Vec3 &uv, const Vec3 &n, float etai_over_etat) {
         float cos_theta     = fminf(dot(uv * -1.0f, n), 1.0f);
         Vec3 r_out_perp     = (uv + n * cos_theta) * etai_over_etat;
@@ -75,7 +95,7 @@ __device__ __forceinline__ float clamp(float x, float min, float max) {
         return x < min ? min : (x > max ? max : x);
 }
 
-// convert float RGB color (0-1) to 32-bit RGBA
+// convert float rgb color (0-1) to 32-bit rgba
 __device__ __forceinline__ unsigned int make_color(float r, float g, float b) {
         r = clamp(r, 0.0f, 1.0f);
         g = clamp(g, 0.0f, 1.0f);
@@ -87,5 +107,3 @@ __device__ __forceinline__ unsigned int make_color(float r, float g, float b) {
 
         return 0xFF000000 | (ib << 16) | (ig << 8) | ir;
 }
-
-#endif  // UTILS_CUH

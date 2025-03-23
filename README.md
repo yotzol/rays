@@ -51,13 +51,4 @@ $ ninja
 From the build directory:
 ```
 $ ./rays
-Created scene with 484 spheres and 484 materials
-Rendering scene with:
-        1920 x 1080 resolution
-        500 samples per pixel
-        50 max depth
-Launching kernel with grid size (120, 68) and block size (16, 16)
-Rendering completed in 17.55 seconds.
-Image saved successfully.
 ```
-The resulting render will be saved to `build/output.png`.
