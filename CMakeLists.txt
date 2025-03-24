@@ -14,7 +14,6 @@ find_package(PNG         REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 find_package(OpenGL      REQUIRED)
 find_package(glfw3       REQUIRED)
-find_package(GLEW        REQUIRED)
 
 add_library(imgui STATIC
     external/imgui/imgui.cpp
@@ -33,7 +32,6 @@ target_include_directories(imgui PUBLIC
 include_directories(
     ${PNG_INCLUDE_DIRS}
     ${CUDAToolkit_INCLUDE_DIRS}
-    ${GLEW_INCLUDE_DIRS}
     ${Imgui_INCLUDE_DIRS}
     include
 )
@@ -49,7 +47,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     CUDA::cudart
     OpenGL::GL
     glfw
-    GLEW::GLEW
     imgui
 )
 
