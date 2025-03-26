@@ -36,39 +36,20 @@ static bool handle_camera_movement(Camera &camera);
 void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
         bool camera_moved = false;
 
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
 
-                // exit program on esc
-                if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
+                if (!renderer.is_rendering) {
+                        // exit program on esc
+                        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
 
-                camera_moved       = false;
-                if (handle_camera_movement(camera)) camera_moved = true;
-                
-                renderer.render_single_frame(scene, camera, camera_moved);
+                        if (handle_camera_movement(camera)) renderer.render_needs_update = true;
 
-                glClear(GL_COLOR_BUFFER_BIT);
-
-                glMatrixMode(GL_PROJECTION);
-                glLoadIdentity();
-                glMatrixMode(GL_MODELVIEW);
-                glLoadIdentity();
-
-                glDisable(GL_DEPTH_TEST);
-                glEnable(GL_TEXTURE_2D);
-
-                glBindTexture(GL_TEXTURE_2D, renderer.get_texture());
-                glBegin(GL_QUADS);
-                glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-                glTexCoord2f(1.0f, 0.0f); glVertex2f(1.0f, -1.0f);
-                glTexCoord2f(1.0f, 1.0f); glVertex2f(1.0f, 1.0f);
-                glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f, 1.0f);
-                glEnd();
-                glBindTexture(GL_TEXTURE_2D, 0);
-
-                glDisable(GL_TEXTURE_2D);
+                        renderer.render_single_frame(scene, camera);
+                } else {
+                        renderer.render_full_frame("output.png", scene, camera);
+                        renderer.is_rendering = false;
+                }
 
                 gui::render_imgui(renderer, camera);
 
