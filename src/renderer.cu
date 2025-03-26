@@ -31,7 +31,6 @@ __device__ Vec3 ray_color(const Ray &r_in, const Scene *world, RandState *state,
                 if (world->hit(current_ray, 0.001f, FMAX, rec)) {
                         Ray scattered;
                         Vec3 scatter_attenuation;
-
                         if (world->materials[rec.material_id].scatter(current_ray, rec, scatter_attenuation, scattered,
                                                                       state)) {
                                 // update attenuation for this bounce
@@ -62,24 +61,23 @@ __device__ Vec3 ray_color(const Ray &r_in, const Scene *world, RandState *state,
 }
 
 __global__ void render_kernel(float4 *accumulation_buffer, cudaSurfaceObject_t output_surf, RenderConfig config,
-                              Camera cam, Scene *world, int sample_count, int seed) {
+                              Camera cam, Scene *world, int sample_count, int seed, int width, int height) {
         // calculate pixel coordinates
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
 
         // exit if out of bounds
-        if (x >= config.image_w || y >= config.image_h) return;
+        if (x >= width || y >= height) return;
 
         // compute 1d index for accumulation buffer
-        int idx = y * config.image_w + x;
+        int idx = y * width + x;
 
         // initialize random state for this pixel
         RandState rand_state;
         random_init(&rand_state, seed, idx);
 
-        // accumulate color
-        float u = float(x + random_float(&rand_state)) / float(config.image_w - 1);
-        float v = float(config.image_h - 1 - y + random_float(&rand_state)) / float(config.image_h - 1);
+        float u = float(x + random_float(&rand_state)) / float(width - 1);
+        float v = float(width - 1 - y + random_float(&rand_state)) / float(height - 1);
         Ray ray = cam.get_ray(u, v, &rand_state);
 
         Vec3 current_color = ray_color(ray, world, &rand_state, config.max_depth);
@@ -98,10 +96,9 @@ __global__ void render_kernel(float4 *accumulation_buffer, cudaSurfaceObject_t o
         unsigned char g = static_cast<unsigned char>(clamp(gamma_corrected.y, 0.0f, 1.0f) * 255.99f);
         unsigned char b = static_cast<unsigned char>(clamp(gamma_corrected.z, 0.0f, 1.0f) * 255.99f);
         uchar4 pixel    = make_uchar4(r, g, b, 255);
-        // uchar4 pixel = make_uchar4(255, 0, 0, 255);
 
         // write pixel to surface, flipping y to match opengl's coordinate system
-        surf2Dwrite(pixel, output_surf, x * sizeof(uchar4), config.image_h - 1 - y, cudaBoundaryModeClamp);
+        surf2Dwrite(pixel, output_surf, x * sizeof(uchar4), height - 1 - y, cudaBoundaryModeClamp);
 }
 
 void Renderer::init(const int width, const int height, RenderConfig render_config) {
@@ -115,12 +112,12 @@ void Renderer::init(const int width, const int height, RenderConfig render_confi
         CHECK_CUDA_ERROR(cudaMalloc(&accumulation_buffer, buffer_size));
         CHECK_CUDA_ERROR(cudaMemset(accumulation_buffer, 0, buffer_size));
 
-        glGenTextures(1, &gl_texture);
-        glBindTexture(GL_TEXTURE_2D, gl_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, window_w, window_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glGenTextures  (1, &gl_texture);
+        glBindTexture  (GL_TEXTURE_2D, gl_texture);
+        glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGBA8, window_w, window_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture  (GL_TEXTURE_2D, 0);
 
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
@@ -133,7 +130,7 @@ void Renderer::init(const int width, const int height, RenderConfig render_confi
         CHECK_CUDA_ERROR(cudaMalloc(&d_scene, sizeof(Scene)));
 }
 
-void Renderer::render(const Scene &scene, const Camera &camera, bool reset_accumulation) {
+void Renderer::render_single_frame(const Scene &scene, const Camera &camera, bool reset_accumulation) {
         if (reset_accumulation) {
                 CHECK_CUDA_ERROR(cudaMemset(accumulation_buffer, 0, window_w * window_h * sizeof(float4)));
                 sample_count = 0;
@@ -166,7 +163,7 @@ void Renderer::render(const Scene &scene, const Camera &camera, bool reset_accum
 
         // launch the rendering kernel
         render_kernel<<<grid_size, block_size>>>(accumulation_buffer, output_surf, config, camera, d_scene,
-                                                 sample_count, time(NULL));
+                                                 sample_count, time(NULL), window_w, window_h);
 
         // check for kernel launch or execution errors
         CHECK_CUDA_ERROR(cudaGetLastError());

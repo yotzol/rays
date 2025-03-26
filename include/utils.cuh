@@ -3,6 +3,7 @@
 #include "vec3.cuh"
 
 #include <curand_kernel.h>
+#include <stdio.h>
 
 typedef curandState RandState;
 
@@ -13,6 +14,7 @@ typedef curandState RandState;
                 if (err != cudaSuccess) {                                                                              \
                         fprintf(stderr, "CUDA error in %s at line %d: %s\n", __FILE__, __LINE__,                       \
                                 cudaGetErrorString(err));                                                              \
+                        cudaDeviceReset();                                                                             \
                         exit(EXIT_FAILURE);                                                                            \
                 }                                                                                                      \
         }

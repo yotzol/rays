@@ -2,8 +2,7 @@
 
 #include "vec3.cuh"
 
-class __align__(16) Ray {
-       public:
+struct __align__(16) Ray {
         Vec3 origin;
         Vec3 direction;
         float time;

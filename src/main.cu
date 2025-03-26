@@ -6,10 +6,14 @@
 #include "vec3.cuh"
 #include "window.cuh"
 
+#include <cstdio>
 #include <cstdlib>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+const int WINDOW_W = 720;
+const int WINDOW_H = 480;
 
 int main() {
         // seed the random number generator
@@ -37,8 +41,9 @@ int main() {
 
         Scene world;
         default_scenes::moving_spheres(world);
+        world.build_bvh();
 
-        create_window(1080, 720);
+        create_window(WINDOW_W, WINDOW_H);
 
         CHECK_CUDA_ERROR(cudaSetDevice(0));
 
@@ -57,7 +62,7 @@ int main() {
         printf("Found %u CUDA device(s) supporting OpenGL interop\n", gl_device_count);
 
         Renderer renderer = Renderer();
-        renderer.init(1080, 720, render_config);
+        renderer.init(WINDOW_W, WINDOW_H, render_config);
 
         main_loop(world, camera, renderer);
 
