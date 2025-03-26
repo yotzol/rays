@@ -26,6 +26,7 @@
           # use gcc13 instead of system's gcc
           shellHook = ''
             export PATH=${pkgs.gcc13}/bin:$PATH
+            export __NV_PRIME_RENDER_OFFLOAD=1
           '';
         };
       }
