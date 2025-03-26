@@ -11,7 +11,7 @@
 
 Renderer::Renderer()
     : gl_texture(0), cuda_texture_resource(nullptr), accumulation_buffer(nullptr), display_buffer(nullptr),
-      d_scene(nullptr), scene_needs_update(true) {}
+      d_scene(nullptr), render_needs_update(true), scene_needs_update(true), final_resolution_idx(1) {}
 
 Renderer::~Renderer() {
         if (accumulation_buffer) cudaFree(accumulation_buffer);
@@ -130,15 +130,17 @@ void Renderer::init(const int width, const int height, RenderConfig render_confi
         CHECK_CUDA_ERROR(cudaMalloc(&d_scene, sizeof(Scene)));
 }
 
-void Renderer::render_single_frame(const Scene &scene, const Camera &camera, bool reset_accumulation) {
-        if (reset_accumulation) {
+void Renderer::render_single_frame(const Scene &scene, const Camera &camera) {
+        if (render_needs_update) {
                 CHECK_CUDA_ERROR(cudaMemset(accumulation_buffer, 0, window_w * window_h * sizeof(float4)));
                 sample_count = 0;
+                render_needs_update = false;
         }
 
         // update scene on device if needed
         if (scene_needs_update) {
                 CHECK_CUDA_ERROR(cudaMemcpy(d_scene, &scene, sizeof(Scene), cudaMemcpyHostToDevice));
+                scene_needs_update = false;
         }
 
         // map the opengl texture to cuda
@@ -175,3 +177,5 @@ void Renderer::render_single_frame(const Scene &scene, const Camera &camera, boo
         // unmap the texture resource
         CHECK_CUDA_ERROR(cudaGraphicsUnmapResources(1, &cuda_texture_resource, 0));
 }
+
+
