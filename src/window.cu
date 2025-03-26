@@ -47,7 +47,7 @@ void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
                 camera_moved       = false;
                 if (handle_camera_movement(camera)) camera_moved = true;
                 
-                renderer.render(scene, camera, camera_moved);
+                renderer.render_single_frame(scene, camera, camera_moved);
 
                 glClear(GL_COLOR_BUFFER_BIT);
 

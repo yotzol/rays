@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include <cuda_runtime.h>
+
 class __align__(16) Vec3 {
        public:
         float x, y, z;
@@ -10,6 +12,7 @@ class __align__(16) Vec3 {
         // constructors
         __host__ __device__ Vec3() : x(0), y(0), z(0), pad(0) {}
         __host__ __device__ Vec3(float x, float y, float z) : x(x), y(y), z(z), pad(0) {}
+        __host__ __device__ Vec3(float f) : x(f), y(f), z(f), pad(0) {}
 
         // operator overloading
         __host__ __device__ __forceinline__ const float &operator[](int index) const {

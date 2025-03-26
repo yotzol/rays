@@ -5,8 +5,7 @@
 
 #include <cmath>
 
-class __align__(16) Sphere {
-       public:
+struct __align__(16) Sphere {
         Ray center;
         float radius;
         int material_id;

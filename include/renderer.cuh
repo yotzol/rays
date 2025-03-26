@@ -23,7 +23,11 @@ class Renderer {
         // setup opengl texture and cuda buffers
         void init(const int width, const int height, const RenderConfig render_config);
 
-        void render(const Scene &scene, const Camera &camera, bool reset_accumulation);
+        // render frame for real-time display
+        void render_single_frame(const Scene &scene, const Camera &camera, bool reset_accumulation);
+
+        // TODO: render full quality frame for exporting.
+        void render_full_frame(const Scene &scene, const Camera &camera) {}
 
         GLuint get_texture() const {
                 return gl_texture;
