@@ -36,11 +36,12 @@ class Renderer {
         // render frame for real-time display
         void render_single_frame(const Scene &scene, const Camera &camera);
 
-        // TODO: render full quality frame for exporting.
-        void render_full_frame(const char file_path[], const Scene &scene, const Camera &camera) {}
+        // render full quality frame for exporting.
+        void render_full_frame(const char file_path[], const Camera &camera);
 
-        GLuint get_texture() const {
-                return gl_texture;
+        void inline set_final_resolution(const int width, const int height) {
+                config.image_w = width;
+                config.image_h = height;
         }
 
        private:
@@ -51,6 +52,5 @@ class Renderer {
 
         // cuda buffers
         float4 *accumulation_buffer;
-        unsigned char *display_buffer;  // mapped opengl texture
         Scene *d_scene;
 };

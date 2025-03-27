@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-const int WINDOW_W = 720;
+const int WINDOW_W = 640;
 const int WINDOW_H = 480;
 
 int main() {
@@ -39,9 +39,9 @@ int main() {
                       10.0f                                      // focus distance
         );
 
-        Scene world;
-        default_scenes::moving_spheres(world);
-        world.build_bvh();
+        Scene scene;
+        default_scenes::moving_spheres(scene);
+        scene.build_bvh();
 
         create_window(WINDOW_W, WINDOW_H);
 
@@ -64,7 +64,7 @@ int main() {
         Renderer renderer = Renderer();
         renderer.init(WINDOW_W, WINDOW_H, render_config);
 
-        main_loop(world, camera, renderer);
+        main_loop(scene, camera, renderer);
 
         glfwTerminate();
 

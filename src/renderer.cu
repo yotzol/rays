@@ -1,26 +1,29 @@
+#include "png_output.cuh"
 #include "renderer.cuh"
 
 #include "camera.cuh"
 #include "utils.cuh"
 
 #include <GL/gl.h>
+#include <cstdio>
 #include <cuda_runtime.h>
+#include <driver_types.h>
 #include <stdio.h>
 #include <surface_types.h>
 #include <time.h>
 
 Renderer::Renderer()
-    : gl_texture(0), cuda_texture_resource(nullptr), accumulation_buffer(nullptr), display_buffer(nullptr),
-      d_scene(nullptr), render_needs_update(true), scene_needs_update(true), final_resolution_idx(1) {}
+    : gl_texture(0), cuda_texture_resource(nullptr), accumulation_buffer(nullptr), d_scene(nullptr),
+      render_needs_update(true), scene_needs_update(true), final_resolution_idx(1) {}
 
 Renderer::~Renderer() {
-        if (accumulation_buffer) cudaFree(accumulation_buffer);
-        if (d_scene) cudaFree(d_scene);
+        if (accumulation_buffer)   cudaFree(accumulation_buffer);
+        if (d_scene)               cudaFree(d_scene);
         if (cuda_texture_resource) cudaFree(cuda_texture_resource);
-        if (gl_texture) glDeleteTextures(1, &gl_texture);
+        if (gl_texture)            glDeleteTextures(1, &gl_texture);
 }
 
-__device__ Vec3 ray_color(const Ray &r_in, const Scene *world, RandState *state, int max_depth) {
+__device__ Vec3 ray_color(const Ray &r_in, const Scene *scene, RandState *state, int max_depth) {
         Vec3 attenuation(1.0f, 1.0f, 1.0f);
         Vec3 color_acc(0.0f, 0.0f, 0.0f);
         Ray current_ray = r_in;
@@ -28,10 +31,10 @@ __device__ Vec3 ray_color(const Ray &r_in, const Scene *world, RandState *state,
         for (int depth = 0; depth < max_depth; depth++) {
                 HitRecord rec;
 
-                if (world->hit(current_ray, 0.001f, FMAX, rec)) {
+                if (scene->hit(current_ray, 0.001f, FMAX, rec)) {
                         Ray scattered;
                         Vec3 scatter_attenuation;
-                        if (world->materials[rec.material_id].scatter(current_ray, rec, scatter_attenuation, scattered,
+                        if (scene->materials[rec.material_id].scatter(current_ray, rec, scatter_attenuation, scattered,
                                                                       state)) {
                                 // update attenuation for this bounce
                                 attenuation = attenuation * scatter_attenuation;
@@ -60,27 +63,27 @@ __device__ Vec3 ray_color(const Ray &r_in, const Scene *world, RandState *state,
         return Vec3(0, 0, 0);
 }
 
-__global__ void render_kernel(float4 *accumulation_buffer, cudaSurfaceObject_t output_surf, RenderConfig config,
-                              Camera cam, Scene *world, int sample_count, int seed, int width, int height) {
+__global__ void render_frame_kernel(float4 *accumulation_buffer, cudaSurfaceObject_t output_surf, RenderConfig config,
+                              Camera cam, Scene *scene, int sample_count, int seed, int width, int height) {
         // calculate pixel coordinates
-        int x = blockIdx.x * blockDim.x + threadIdx.x;
-        int y = blockIdx.y * blockDim.y + threadIdx.y;
+        const int x = blockIdx.x * blockDim.x + threadIdx.x;
+        const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
         // exit if out of bounds
         if (x >= width || y >= height) return;
 
         // compute 1d index for accumulation buffer
-        int idx = y * width + x;
+        const int idx = y * width + x;
 
         // initialize random state for this pixel
         RandState rand_state;
         random_init(&rand_state, seed, idx);
 
-        float u = float(x + random_float(&rand_state)) / float(width - 1);
-        float v = float(width - 1 - y + random_float(&rand_state)) / float(height - 1);
+        const float u = float(x + random_float(&rand_state)) / float(width - 1);
+        const float v = float(width - 1 - y + random_float(&rand_state)) / float(height - 1);
         Ray ray = cam.get_ray(u, v, &rand_state);
 
-        Vec3 current_color = ray_color(ray, world, &rand_state, config.max_depth);
+        Vec3 current_color = ray_color(ray, scene, &rand_state, config.max_depth);
 
         float4 prev_accum        = accumulation_buffer[idx];
         accumulation_buffer[idx] = make_float4(prev_accum.x + current_color.x, prev_accum.y + current_color.y,
@@ -108,7 +111,7 @@ void Renderer::init(const int width, const int height, RenderConfig render_confi
 
         sample_count = 0;
 
-        size_t buffer_size = window_w * window_h * sizeof(float4);
+        size_t buffer_size = window_w * window_h * sizeof(Vec3);
         CHECK_CUDA_ERROR(cudaMalloc(&accumulation_buffer, buffer_size));
         CHECK_CUDA_ERROR(cudaMemset(accumulation_buffer, 0, buffer_size));
 
@@ -164,7 +167,7 @@ void Renderer::render_single_frame(const Scene &scene, const Camera &camera) {
         sample_count++;
 
         // launch the rendering kernel
-        render_kernel<<<grid_size, block_size>>>(accumulation_buffer, output_surf, config, camera, d_scene,
+        render_frame_kernel<<<grid_size, block_size>>>(accumulation_buffer, output_surf, config, camera, d_scene,
                                                  sample_count, time(NULL), window_w, window_h);
 
         // check for kernel launch or execution errors
@@ -178,4 +181,74 @@ void Renderer::render_single_frame(const Scene &scene, const Camera &camera) {
         CHECK_CUDA_ERROR(cudaGraphicsUnmapResources(1, &cuda_texture_resource, 0));
 }
 
+__global__ void render_full_kernel(unsigned int *buffer, RenderConfig config, Camera cam, Scene *scene, int seed) {
+        // calculate pixel coordinates
+        const int x = blockIdx.x * blockDim.x + threadIdx.x;
+        const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
+        const int w = config.image_w;
+        const int h = config.image_h;
+
+        // exit if out of bounds
+        if (x >= w || y >= h) return;
+
+        // compute 1d index for accumulation buffer
+        const int idx = y * w + x;
+
+        // initialize random state for this pixel
+        RandState rand_state;
+        random_init(&rand_state, seed, idx);
+
+        // compute color
+        Vec3 color;
+        for (int s = 0; s < config.samples_per_pixel; s++) {
+                const float u = float(x + random_float(&rand_state)) / float(w - 1);
+                const float v = float(w - 1 - y + random_float(&rand_state)) / float(h - 1);
+                Ray ray       = cam.get_ray(u, v, &rand_state);
+
+                color += ray_color(ray, scene, &rand_state, config.max_depth);
+        }
+        color /= float(config.samples_per_pixel);
+
+        // gamma correction
+        color = Vec3(sqrtf(color.x), sqrtf(color.y), sqrtf(color.z));
+
+        // convert to uint and insert into buffer
+        buffer[idx] = make_color(color.x, color.y, color.z);
+}
+
+void Renderer::render_full_frame(const char file_path[], const Camera &camera) {
+        switch (final_resolution_idx) {
+                case 0 : set_final_resolution(1280,  720); break;
+                case 1 : set_final_resolution(1920, 1080); break;
+                case 2 : set_final_resolution(2560, 1440); break;
+                case 4 : set_final_resolution(3840, 2160); break;
+                default: {
+                        fprintf(stderr, "Invalid resolution idx: %d", final_resolution_idx);
+                        exit(EXIT_FAILURE);
+                }
+        }
+
+        // allocate device buffer
+        unsigned int *d_buffer;
+        size_t buffer_size = config.image_w * config.image_w * sizeof(unsigned int);
+        CHECK_CUDA_ERROR(cudaMalloc(&d_buffer, buffer_size));
+        CHECK_CUDA_ERROR(cudaMemset(d_buffer, 0, buffer_size));
+
+        // define block and grid sizes for kernel launch
+        dim3 block_size(16, 16);
+        dim3 grid_size((config.image_w + block_size.x - 1) / block_size.x, (config.image_h + block_size.y - 1) / block_size.y);
+
+        render_full_kernel<<<grid_size, block_size>>>(d_buffer, config, camera, d_scene, time(NULL));
+
+        // check for kernel launch or execution errors
+        CHECK_CUDA_ERROR(cudaGetLastError());
+        CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+
+        // copy buffer back to host
+        unsigned int *h_buffer = new unsigned int [buffer_size];
+        CHECK_CUDA_ERROR(cudaMemcpy(h_buffer, d_buffer, buffer_size, cudaMemcpyDeviceToHost));
+
+        // export
+        save_png(file_path, h_buffer, config.image_w, config.image_h);
+}

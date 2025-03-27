@@ -34,8 +34,6 @@ void create_window(const int width, const int height) {
 static bool handle_camera_movement(Camera &camera);
 
 void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
-        bool camera_moved = false;
-
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
 
@@ -47,7 +45,7 @@ void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
 
                         renderer.render_single_frame(scene, camera);
                 } else {
-                        renderer.render_full_frame("output.png", scene, camera);
+                        renderer.render_full_frame("output.png", camera);
                         renderer.is_rendering = false;
                 }
 
