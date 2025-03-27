@@ -1,6 +1,6 @@
-![render](renders/book1_final_render.png)
+![render](renders/book2_moving_spheres_free_cam_FHD.png)
 
-A GPU accelerated ray tracer implementation in CUDA, based on the [Ray Tracing in One Weekend](https://raytracing.github.io/) series.
+A GPU accelerated path tracer implementation in CUDA, based on the [Ray Tracing in One Weekend](https://raytracing.github.io/) series.
 
 ## Running the project
 ### Requirements
