@@ -20,4 +20,6 @@ struct __align__(16) Sphere {
             : center(center1, center2 - center1), radius(std::fmax(radius, 0.0f)), material_id(material_id) {}
 
         __device__ bool hit(const Ray &ray, float t_min, float t_max, HitRecord &rec) const;
+
+        __device__ __forceinline__ void get_sphere_uv(const Vec3 p, float &u, float &v) const;
 };

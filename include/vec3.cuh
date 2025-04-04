@@ -2,10 +2,10 @@
 
 #include <assert.h>
 
+#include <cmath>
 #include <cuda_runtime.h>
 
-class __align__(16) Vec3 {
-       public:
+struct __align__(16) Vec3 {
         float x, y, z;
         float pad;
 
