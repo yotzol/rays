@@ -20,7 +20,6 @@
             gcc13                     # C++ compiler
             cmake                     # build system
             ninja                     # fast builds
-            libpng                    # PNG output
             glfw                      # window and opengl context management
           ];
           # use gcc13 instead of system's gcc

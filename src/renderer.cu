@@ -1,4 +1,4 @@
-#include "png_output.cuh"
+#include "image.cuh"
 #include "renderer.cuh"
 
 #include "camera.cuh"
@@ -44,10 +44,24 @@ __device__ Vec3 ray_color(const Ray &r_in, const Scene *scene, RandState *state,
                                 return Vec3(0, 0, 0);
                         }
                 } else {
-                        // if it hit nothing, it's the sky. return blue white gradient
-                        Vec3 unit_direction = normalize(current_ray.direction);
-                        float t             = 0.5f * (unit_direction.y + 1.0f);
-                        Vec3 background     = Vec3(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vec3(0.5f, 0.7f, 1.0f) * t;
+                        // hit nothing. return environment
+                        Vec3 background;
+                        // environment map loaded: use map
+                        if (scene->env_map != 0) {
+                                Vec3 d       = normalize(current_ray.direction);
+                                float phi    = atan2f(d.z, d.x);
+                                float u      = (phi / (2.0f * M_PI)) + 0.5f;
+                                float theta  = acosf(d.y);
+                                float v      = theta / M_PI;
+                                float4 color = tex2D<float4>(scene->env_map, u, v);
+                                background   = Vec3(color.x, color.y, color.z);
+                        }
+                        // no environment loaded: use sky gradient
+                        else {
+                                Vec3 unit_direction = normalize(current_ray.direction);
+                                float t             = 0.5f * (unit_direction.y + 1.0f);
+                                background          = Vec3(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vec3(0.5f, 0.7f, 1.0f) * t;
+                        }
                         return attenuation * background;
                 }
 

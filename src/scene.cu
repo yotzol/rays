@@ -5,6 +5,9 @@
 #include <cstring>
 #include <cuda_runtime.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 __host__ void Scene::add_sphere(const Sphere &sphere) {
         if (num_spheres < MAX_SPHERES) {
                 spheres[num_spheres++] = sphere;
@@ -19,6 +22,43 @@ __host__ int Scene::add_material(const Material &material) {
         }
         assert(num_materials < MAX_MATERIALS);
         return -1;
+}
+
+__host__ void Scene::set_env_map(const char path[]) {
+        // load rgba image
+        unsigned char *env_data = stbi_load(path, &env_w, &env_h, &env_channels, 4);
+        if (!env_data) {
+                printf("Failed to load environment map: %s\n", path);
+                return;
+        }
+
+        // rgba channel format
+        const cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc(8, 8, 8, 8, cudaChannelFormatKindUnsigned);
+
+        // copy to device
+        cudaArray *d_array;
+        CHECK_CUDA_ERROR(cudaMallocArray(&d_array, &channel_desc, env_w, env_h));
+        const int array_size = env_w * env_h * 4 * sizeof(unsigned char);
+        CHECK_CUDA_ERROR(cudaMemcpyToArray(d_array, 0, 0, env_data, array_size, cudaMemcpyHostToDevice));
+
+        // resource descriptor
+        cudaResourceDesc res_desc{};
+        res_desc.resType         = cudaResourceTypeArray;
+        res_desc.res.array.array = d_array;
+
+        // texture descriptor
+        cudaTextureDesc tex_desc{};
+        tex_desc.addressMode[0]   = cudaAddressModeWrap;          // wrap horizontally
+        tex_desc.addressMode[1]   = cudaAddressModeClamp;         // clamp vertically
+        tex_desc.filterMode       = cudaFilterModeLinear;         // linear interpolation
+        tex_desc.readMode         = cudaReadModeNormalizedFloat;  // return normalized floats [0,1]
+        tex_desc.normalizedCoords = 1;                            // use [0,1] coordinates
+
+        // texture object
+        CHECK_CUDA_ERROR(cudaCreateTextureObject(&env_map, &res_desc, &tex_desc, nullptr));
+
+        // free host memory
+        stbi_image_free(env_data);
 }
 
 __device__ bool Scene::hit(const Ray &ray, float t_min, float t_max, HitRecord &rec) const {

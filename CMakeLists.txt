@@ -30,10 +30,10 @@ target_include_directories(imgui PUBLIC
 )
 
 include_directories(
-    ${PNG_INCLUDE_DIRS}
     ${CUDAToolkit_INCLUDE_DIRS}
     ${Imgui_INCLUDE_DIRS}
     include
+    external/stb
 )
 
 file(GLOB_RECURSE SOURCES "src/*.cu")
@@ -43,7 +43,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${PNG_LIBRARIES}
     CUDA::cudart
     OpenGL::GL
     glfw

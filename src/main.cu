@@ -12,8 +12,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-const int WINDOW_W = 640;
-const int WINDOW_H = 480;
+const int WINDOW_W = 1280;
+const int WINDOW_H =  720;
 
 int main() {
         // seed the random number generator
@@ -26,8 +26,8 @@ int main() {
         RenderConfig render_config;
         render_config.image_w           = image_width;
         render_config.image_h           = image_height;
-        render_config.samples_per_pixel = 500;
-        render_config.max_depth         = 50;
+        render_config.samples_per_pixel = 128;
+        render_config.max_depth         = 128;
 
         // camera settings
         Camera camera(Vec3(13, 2, 3),                            // lookfrom
@@ -40,7 +40,7 @@ int main() {
         );
 
         Scene scene;
-        default_scenes::moving_spheres(scene);
+        default_scenes::env_map_test(scene);
         scene.build_bvh();
 
         create_window(WINDOW_W, WINDOW_H);
