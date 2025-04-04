@@ -21,6 +21,7 @@ typedef curandState RandState;
 
 const float FMAX = std::numeric_limits<float>::max();
 const float PI   = 3.141592653589f;
+const float TAU  = PI * 2;
 
 __host__ __device__ __forceinline__ float degrees(float radians) {
         return radians * 180.0f / PI;

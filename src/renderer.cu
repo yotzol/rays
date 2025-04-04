@@ -7,9 +7,7 @@
 #include <GL/gl.h>
 #include <cstdio>
 #include <cuda_runtime.h>
-#include <driver_types.h>
 #include <stdio.h>
-#include <surface_types.h>
 #include <time.h>
 
 Renderer::Renderer()
@@ -236,7 +234,7 @@ void Renderer::render_full_frame(const char file_path[], const Camera &camera) {
                 case 0 : set_final_resolution(1280,  720); break;
                 case 1 : set_final_resolution(1920, 1080); break;
                 case 2 : set_final_resolution(2560, 1440); break;
-                case 4 : set_final_resolution(3840, 2160); break;
+                case 3 : set_final_resolution(3840, 2160); break;
                 default: {
                         fprintf(stderr, "Invalid resolution idx: %d", final_resolution_idx);
                         exit(EXIT_FAILURE);

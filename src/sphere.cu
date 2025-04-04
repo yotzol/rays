@@ -22,7 +22,16 @@ __device__ bool Sphere::hit(const Ray &ray, float t_min, float t_max, HitRecord 
         rec.point           = ray.at(rec.t);
         Vec3 outward_normal = (rec.point - curr_center) / radius;
         rec.set_face_normal(ray, outward_normal);
+        get_sphere_uv(outward_normal, rec.u, rec.v);
         rec.material_id = material_id;
 
         return true;
+}
+
+__device__ __forceinline__ void Sphere::get_sphere_uv(const Vec3 p, float &u, float &v) const {
+        const float theta = acos(-p.y);
+        const float phi   = atan2(-p.z, p.x) + PI;
+
+        u = clamp(phi / TAU, 0, 1);
+        v = 1 - clamp(theta / PI, 0, 1);
 }

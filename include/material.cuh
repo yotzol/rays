@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ray.cuh"
+#include "texture.cuh"
 #include "utils.cuh"
 
 struct __align__(16) HitRecord {
@@ -9,6 +10,7 @@ struct __align__(16) HitRecord {
         float t;
         bool front_face;
         int material_id;
+        float u, v;
 
         __device__ __forceinline__ void set_face_normal(const Ray &ray, const Vec3 &outward_normal) {
                 front_face = dot(ray.direction, outward_normal) < 0;
@@ -21,24 +23,22 @@ enum MaterialType { LAMBERTIAN, METAL, DIELECTRIC };
 class __align__(16) Material {
        public:
         MaterialType type;
-        Vec3 albedo;    // for lambertian and metal
-        float fuzz;     // for metal (0 = no fuzz, 1 = max fuzz)
-        float ref_idx;  // for dielectric
+        Texture texture;  // for lambertian
+        Vec3 albedo;      // for metal
+        float fuzz;       // for metal (0 = no fuzz, 1 = max fuzz)
+        float ref_idx;    // for dielectric
 
-        __host__ __device__ Material() : type(LAMBERTIAN), fuzz(0), ref_idx(1) {}
-
-        __host__ __device__ Material(MaterialType t, const Vec3 &a, float f = 0, float ri = 1)
-            : type(t), albedo(a), fuzz(f), ref_idx(ri) {}
+        __host__ Material() : type(LAMBERTIAN), texture(Texture()), fuzz(0), ref_idx(1) {}
 
         // generic scatter function that dispatches to the appropriate material type
         __device__ bool scatter(const Ray &ray_in, const HitRecord &rec, Vec3 &attenuation, Ray &scattered,
                                 RandState *rand_state) const {
                 switch (type) {
                         case LAMBERTIAN: return scatter_lambertian(ray_in, rec, attenuation, scattered, rand_state);
-                        case METAL     : return scatter_metal(ray_in, rec, attenuation, scattered, rand_state);
+                        case METAL     : return scatter_metal     (ray_in, rec, attenuation, scattered, rand_state);
                         case DIELECTRIC: return scatter_dielectric(ray_in, rec, attenuation, scattered, rand_state);
                         default        : return false;
-                }
+                };
         }
 
        private:
@@ -50,7 +50,7 @@ class __align__(16) Material {
                 if (scatter_direction.length_squared() < 0.001f) scatter_direction = rec.normal;
 
                 scattered   = Ray(rec.point, scatter_direction, ray_in.time);
-                attenuation = albedo;
+                attenuation = texture.value(rec.u, rec.v, rec.point);
                 return true;
         }
 
@@ -83,3 +83,7 @@ class __align__(16) Material {
                 return true;
         }
 };
+
+Material lambertian_new(Texture texture);
+Material metal_new(Vec3 albedo, float fuzz);
+Material dielectric_new(float refraction_index);

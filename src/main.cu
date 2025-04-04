@@ -7,9 +7,7 @@
 #include "window.cuh"
 
 #include <cstdio>
-#include <cstdlib>
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 
 const int WINDOW_W = 1280;
@@ -40,7 +38,8 @@ int main() {
         );
 
         Scene scene;
-        default_scenes::env_map_test(scene);
+        default_scenes::moving_spheres(scene);
+        scene.set_env_map("../assets/test.hdr");
         scene.build_bvh();
 
         create_window(WINDOW_W, WINDOW_H);

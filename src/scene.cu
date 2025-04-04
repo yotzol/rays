@@ -28,7 +28,7 @@ __host__ void Scene::set_env_map(const char path[]) {
         // load rgba image
         unsigned char *env_data = stbi_load(path, &env_w, &env_h, &env_channels, 4);
         if (!env_data) {
-                printf("Failed to load environment map: %s\n", path);
+                fprintf(stderr, "Failed to load environment map: %s\n", path);
                 return;
         }
 
