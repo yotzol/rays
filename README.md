@@ -1,4 +1,4 @@
-![render](renders/book2_moving_spheres_free_cam_FHD.png)
+![render](renders/6-environment_map_FHD.png)
 
 A GPU accelerated path tracer implementation in CUDA, based on the [Ray Tracing in One Weekend](https://raytracing.github.io/) series.
 

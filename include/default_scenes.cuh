@@ -60,4 +60,15 @@ void moving_spheres(Scene &scene) {
         }
 }
 
+void env_map_test(Scene &scene) {
+        
+        int material1 = scene.add_material(Material(DIELECTRIC, Vec3(1.0f, 1.0f, 1.0f), 0.0f, 1.5f));
+        int material2 = scene.add_material(Material(METAL, Vec3(0.7f, 0.6f, 0.5f), 0.0f));
+
+        scene.add_sphere(Sphere(Vec3(0, 1, 0), 1.0f, material1));
+        scene.add_sphere(Sphere(Vec3(4, 1, 0), 1.0f, material2));
+
+        scene.set_env_map("../assets/test.hdr");
+}
+
 }  // namespace default_scenes
