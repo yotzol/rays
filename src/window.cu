@@ -1,15 +1,22 @@
 #include "window.cuh"
+
 #include "camera.cuh"
+#include "gui.cuh"
 #include "renderer.cuh"
 #include "scene.cuh"
-#include "gui.cuh"
 
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
+#include <atomic>
 #include <cuda_gl_interop.h>
 #include <stdio.h>
+#include <thread>
+
+namespace window {
 
 GLFWwindow *window = nullptr;
+
+std::atomic<bool> is_exporting(false);
 
 void create_window(const int width, const int height) {
         if (!glfwInit()) {
@@ -37,16 +44,29 @@ void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
 
-                if (!renderer.is_rendering) {
+                // full quality render (spawn thread)
+                if (gui::button_export_clicked && !is_exporting.load()) {
+                        printf("Exporting full quality image.\n");
+                        gui::button_export_clicked = false;
+                        is_exporting.store(true);
+
+                        std::thread render_thread([&renderer, &camera]() {
+                                renderer.render_full_frame("output.png", camera);
+                                is_exporting.store(false);
+                        });
+                        render_thread.detach();
+                }
+
+                // real-time render (if not exporting)
+                if (!is_exporting.load()) {
                         // exit program on esc
                         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
 
-                        if (handle_camera_movement(camera)) renderer.render_needs_update = true;
+                        // if moving, update renderer
+                        renderer.render_needs_update = handle_camera_movement(camera);
 
+                        // accumulate
                         renderer.render_single_frame(scene, camera);
-                } else {
-                        renderer.render_full_frame("output.png", camera);
-                        renderer.is_rendering = false;
                 }
 
                 gui::render_imgui(renderer, camera);
@@ -60,24 +80,26 @@ void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
 static bool handle_camera_movement(Camera &camera) {
         bool camera_moved = false;
 
-        // camera position
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) { camera.move(CameraMovement::FORWARD);  camera_moved = true; }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) { camera.move(CameraMovement::LEFT);     camera_moved = true; }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) { camera.move(CameraMovement::BACKWARD); camera_moved = true; }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { camera.move(CameraMovement::RIGHT);    camera_moved = true; }
-
-        if (glfwGetKey(window, GLFW_KEY_SPACE)      == GLFW_PRESS) { camera.move(CameraMovement::UP);    camera_moved = true; }
-        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) { camera.move(CameraMovement::DOWN);  camera_moved = true; }
-
-        // tilt
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) { camera.tilt(false); camera_moved = true; }
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) { camera.tilt(true);  camera_moved = true; }
-
         // camera angle
         static float last_mouse_x           = 0.0f;
         static float last_mouse_y           = 0.0f;
         static bool first_mouse             = true;
         static bool is_mouse_control_active = false;
+
+        if (is_mouse_control_active) {
+                // camera position
+                if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) { camera.move(CameraMovement::FORWARD);  camera_moved = true; }
+                if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) { camera.move(CameraMovement::LEFT);     camera_moved = true; }
+                if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) { camera.move(CameraMovement::BACKWARD); camera_moved = true; }
+                if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { camera.move(CameraMovement::RIGHT);    camera_moved = true; }
+
+                if (glfwGetKey(window, GLFW_KEY_SPACE)      == GLFW_PRESS) { camera.move(CameraMovement::UP);    camera_moved = true; }
+                if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) { camera.move(CameraMovement::DOWN);  camera_moved = true; }
+
+                // tilt
+                if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) { camera.tilt(false); camera_moved = true; }
+                if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) { camera.tilt(true);  camera_moved = true; }
+        }
 
         double mouse_x, mouse_y;
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
@@ -114,3 +136,5 @@ static bool handle_camera_movement(Camera &camera) {
 
         return camera_moved;
 }
+
+}  // namespace window

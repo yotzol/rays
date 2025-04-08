@@ -42,7 +42,7 @@ int main() {
         scene.set_env_map("../assets/test.hdr");
         scene.build_bvh();
 
-        create_window(WINDOW_W, WINDOW_H);
+        window::create_window(WINDOW_W, WINDOW_H);
 
         CHECK_CUDA_ERROR(cudaSetDevice(0));
 
@@ -63,7 +63,7 @@ int main() {
         Renderer renderer = Renderer();
         renderer.init(WINDOW_W, WINDOW_H, render_config);
 
-        main_loop(scene, camera, renderer);
+        window::main_loop(scene, camera, renderer);
 
         glfwTerminate();
 

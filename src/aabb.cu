@@ -43,7 +43,7 @@ __host__ Aabb Aabb::from_sphere(const Sphere &sphere) {
                     Vec3(fmaxf(max0.x, max1.x), fmaxf(max0.y, max1.y), fmaxf(max0.z, max1.z))};
 }
 
-__device__ bool Aabb::hit(const Ray &ray, float t_min, float t_max, HitRecord &rec) const {
+__device__ bool Aabb::hit(const Ray &ray, float t_min, float t_max) const {
         for (int axis = 0; axis < 3; axis++) {
                 // extract components for this axis
                 float origin = ray.origin[axis];
