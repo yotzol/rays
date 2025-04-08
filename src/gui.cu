@@ -10,6 +10,8 @@ void render_ui(Renderer &renderer, Camera &camera);
 
 namespace gui {
 
+bool button_export_clicked = false;
+
 void setup_imgui() {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -18,7 +20,7 @@ void setup_imgui() {
 
         setup_imgui_style();
 
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplGlfw_InitForOpenGL(window::window, true);
         ImGui_ImplOpenGL3_Init("#version 330");
 }
 
@@ -134,12 +136,19 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::BeginChild("BottomBar", ImVec2(0, 45), true, ImGuiWindowFlags_NoScrollbar);
 
         ImGui::SetCursorPos(ImVec2(10, 7));
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.4f, 0.4f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.0f, 0.4f, 0.4f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.6f, 0.6f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.0f, 0.6f, 0.6f, 1.0f));
 
-        if (ImGui::Button("RENDER", ImVec2(100, 30)) && !renderer.is_rendering) {
-                renderer.is_rendering = true;
+        if (ImGui::Button("RENDER", ImVec2(100, 30))) {
+                printf("BUTTON: Export clicked.\n");
+
+                if (!window::is_exporting.load()) {
+                        printf("\t- Export button flag set to TRUE.\n");
+                        gui::button_export_clicked = true;
+                } else {
+                        printf("\t- IGNORED: already exporting.\n");
+                }
         }
 
         ImGui::PopStyleColor(3);
@@ -147,6 +156,7 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::SameLine(120);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.3f, 1.0f));
         if (ImGui::Button("RESET", ImVec2(100, 30))) {
+                printf("BUTTON: Reset clicked.\n");
                 renderer.render_needs_update = true;
         }
         ImGui::PopStyleColor();

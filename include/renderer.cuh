@@ -17,7 +17,6 @@ class Renderer {
        public:
         RenderConfig config;
         GLuint gl_texture;
-        bool is_rendering;
         int final_resolution_idx;
 
         // flags

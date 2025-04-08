@@ -263,4 +263,6 @@ void Renderer::render_full_frame(const char file_path[], const Camera &camera) {
 
         // export
         save_png(file_path, h_buffer, config.image_w, config.image_h);
+
+        printf("Export complete.\n");
 }

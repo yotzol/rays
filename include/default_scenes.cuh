@@ -19,8 +19,8 @@ void moving_spheres(Scene &scene) {
 
         // three main spheres
         int material1 = scene.add_material(dielectric_new(1.5f));
-        int material2 = scene.add_material(lambertian_new(texture_solid(Vec3(0.4f, 0.2f, 0.1f))));
-        // int material2 = scene.add_material(lambertian_new(texture_image("../assets/brick.jpg")));
+        // int material2 = scene.add_material(lambertian_new(texture_solid(Vec3(0.4f, 0.2f, 0.1f))));
+        int material2 = scene.add_material(lambertian_new(texture_image("../assets/brick.jpg")));
         int material3 = scene.add_material(metal_new(Vec3(0.7f, 0.6f, 0.5f), 0.0f));
 
         scene.add_sphere(Sphere(Vec3(-4, 1, 0), 1.0f, material2));

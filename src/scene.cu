@@ -73,7 +73,7 @@ __device__ bool Scene::hit(const Ray &ray, float t_min, float t_max, HitRecord &
                 int node_idx        = stack[--stack_ptr];
                 const BvhNode &node = bvh_nodes[node_idx];
 
-                if (node.bbox.hit(ray, t_min, t_max, rec)) {
+                if (node.bbox.hit(ray, t_min, t_max)) {
                         if (node.is_leaf) {
                                 for (int i = 0; i < node.leaf.count; i++) {
                                         int sphere_idx = node.leaf.idx_start + i;
