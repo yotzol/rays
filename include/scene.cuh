@@ -22,7 +22,10 @@ struct __align__(16) Scene {
         cudaTextureObject_t env_map;
         int env_w, env_h, env_channels;
 
-        __host__ Scene() : num_objects(0), num_materials(0), root_idx(0), env_map(0), env_w(0), env_h(0), env_channels(0) {}
+        bool no_environment;
+        Vec3 background_color;
+
+        __host__ Scene() : num_objects(0), num_materials(0), root_idx(0), env_map(0), env_w(0), env_h(0), env_channels(0), no_environment(false), background_color(0.0f, 0.0f, 0.0f) {}
 
         // add an object to the scene
         __host__ void add_object(const Object &sphere);

@@ -6,10 +6,10 @@ __host__ Camera::Camera(float vfov, float aspect_ratio) {
         this->aperture     = 0.0f;
         this->focus_dist   = 1.0f;
 
-        // default position and orientation
+        // default position
         origin = Vec3(0, 0, 0);
 
-        yaw   = -90.0f;  // looking along negative z-axis initially
+        yaw   = -90.0f;  // looking along negative z-axis
         pitch = 0.0f;
         roll  = 0.0f;
 
@@ -17,6 +17,8 @@ __host__ Camera::Camera(float vfov, float aspect_ratio) {
         movement_speed    = camera::DEFAULT_MOVEMENT_SPEED;
         mouse_sensitivity = camera::DEFAULT_MOUSE_SENSITIVITY;
         tilt_speed        = camera::DEFAULT_TILT_SPEED;
+
+        lens_radius = aperture / 2.0f;
 
         // initialize camera vectors
         update_camera();
@@ -29,12 +31,12 @@ __host__ Camera::Camera(Vec3 lookfrom, Vec3 lookat, float vfov, float aspect_rat
         this->aperture     = aperture;
         this->focus_dist   = focus_dist;
 
-        // set position
+        // position
         origin = lookfrom;
 
         // calculate initial yaw and pitch from lookfrom and lookat
         Vec3 direction = normalize(lookat - lookfrom);
-        yaw            = degrees(atan2(direction.x, direction.z));
+        yaw            = degrees(atan2(direction.z, direction.x));
         pitch          = degrees(asin(direction.y));
         roll           = 0.0f;
 
@@ -42,6 +44,8 @@ __host__ Camera::Camera(Vec3 lookfrom, Vec3 lookat, float vfov, float aspect_rat
         movement_speed    = camera::DEFAULT_MOVEMENT_SPEED;
         mouse_sensitivity = camera::DEFAULT_MOUSE_SENSITIVITY;
         tilt_speed        = camera::DEFAULT_TILT_SPEED;
+
+        lens_radius = aperture / 2.0f;
 
         // initialize camera vectors
         update_camera();

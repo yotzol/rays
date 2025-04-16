@@ -94,7 +94,7 @@ __device__ bool Aabb::hit(const Ray &ray, float t_min, float t_max) const {
 }
 
 __host__ void Aabb::pad() {
-        const float delta = 0.0001f;
+        const float delta = 0.001f;
         for (int axis = 0; axis < 3; ++axis) {
                 float size = max[axis] - min[axis];
                 if (size < delta) {

@@ -119,9 +119,20 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::Text("Bounces: %d", renderer.config.max_depth);
         ImGui::SliderInt("##Bounces", &renderer.config.max_depth, 1, 128);
 
-        static const char *resolutions[] = {"640x360", "1280x720", "1920x1080", "2560x1440", "3840x2160"};
+        static const char *resolutions[] = {"640x360", "1280x720", "1920x1080", "2560x1440", "3840x2160", "1920x1920"};
         ImGui::Text("Resolution");
         ImGui::Combo("##Resolution", &renderer.final_resolution_idx, resolutions, IM_ARRAYSIZE(resolutions));
+        ImGui::Spacing();
+
+        // controls section
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.9f, 1.0f, 1.0f));
+        ImGui::TextUnformatted("CONTROLS");
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+
+        ImGui::Text("Movement speed: %f", camera.movement_speed);
+        ImGui::SliderFloat("##MovementSpeed", &camera.movement_speed, 0.1, 50);
+
         ImGui::Spacing();
 
         // environment section
