@@ -2,7 +2,7 @@
 
 #include "material.cuh"
 #include "scene.cuh"
-#include "sphere.cuh"
+#include "object.cuh"
 #include "texture.cuh"
 #include "vec3.cuh"
 
@@ -15,7 +15,7 @@ void moving_spheres(Scene &scene) {
                 lambertian_new(texture_checker(Vec3(0.2f, 0.3f, 0.1f), Vec3(0.9f, 0.9f, 0.9f), 0.32)));
 
         // large sphere for the ground
-        scene.add_sphere(Sphere(Vec3(0, -1000, 0), 1000, ground_material));
+        scene.add_object(sphere_new(Vec3(0, -1000, 0), 1000, ground_material));
 
         // three main spheres
         int material1 = scene.add_material(dielectric_new(1.5f));
@@ -23,9 +23,9 @@ void moving_spheres(Scene &scene) {
         int material2 = scene.add_material(lambertian_new(texture_image("../assets/brick.jpg")));
         int material3 = scene.add_material(metal_new(Vec3(0.7f, 0.6f, 0.5f), 0.0f));
 
-        scene.add_sphere(Sphere(Vec3(-4, 1, 0), 1.0f, material2));
-        scene.add_sphere(Sphere(Vec3( 0, 1, 0), 1.0f, material1));
-        scene.add_sphere(Sphere(Vec3( 4, 1, 0), 1.0f, material3));
+        scene.add_object(sphere_new(Vec3(-4, 1, 0), 1.0f, material2));
+        scene.add_object(sphere_new(Vec3( 0, 1, 0), 1.0f, material1));
+        scene.add_object(sphere_new(Vec3( 4, 1, 0), 1.0f, material3));
 
         // small spheres
         if (!false) {
@@ -45,18 +45,18 @@ void moving_spheres(Scene &scene) {
                                                 sphere_material =
                                                         scene.add_material(lambertian_new(texture_solid(albedo)));
                                                 Vec3 center2 = center + Vec3(0, random_float(0.0f, 0.5f), 0.0f);
-                                                scene.add_sphere(Sphere(center, center2, 0.2f, sphere_material));
+                                                scene.add_object(sphere_moving(center, center2, 0.2f, sphere_material));
                                         } else if (choose_mat < 0.95f) {
                                                 // metal
                                                 Vec3 albedo(0.5f * (1 + random_float()), 0.5f * (1 + random_float()),
                                                             0.5f * (1 + random_float()));
                                                 float fuzz      = 0.5f * random_float();
                                                 sphere_material = scene.add_material(metal_new(albedo, fuzz));
-                                                scene.add_sphere(Sphere(center, 0.2f, sphere_material));
+                                                scene.add_object(sphere_new(center, 0.2f, sphere_material));
                                         } else {
                                                 // glass
                                                 sphere_material = scene.add_material(dielectric_new(1.5f));
-                                                scene.add_sphere(Sphere(center, 0.2f, sphere_material));
+                                                scene.add_object(sphere_new(center, 0.2f, sphere_material));
                                         }
                                 }
                         }
@@ -64,12 +64,26 @@ void moving_spheres(Scene &scene) {
         }
 }
 
+void quads(Scene &scene) {
+        int left_red     = scene.add_material(lambertian_new(texture_solid(Vec3(1.0f, 0.2f, 0.2f))));
+        int back_green   = scene.add_material(lambertian_new(texture_solid(Vec3(0.2f, 1.0f, 0.2f))));
+        int right_blue   = scene.add_material(lambertian_new(texture_solid(Vec3(0.2f, 0.2f, 1.0f))));
+        int upper_orange = scene.add_material(lambertian_new(texture_solid(Vec3(1.0f, 0.5f, 0.0f))));
+        int lower_teal   = scene.add_material(lambertian_new(texture_solid(Vec3(0.2f, 0.8f, 0.8f))));
+
+        scene.add_object(quad_new(Vec3(-3, -2, 5), Vec3(0, 0, -4), Vec3(0, 4,  0), left_red));
+        scene.add_object(quad_new(Vec3(-2, -2, 0), Vec3(4, 0,  0), Vec3(0, 4,  0), back_green));
+        scene.add_object(quad_new(Vec3( 3, -2, 1), Vec3(0, 0,  4), Vec3(0, 4,  0), right_blue));
+        scene.add_object(quad_new(Vec3(-2,  3, 1), Vec3(4, 0,  0), Vec3(0, 0,  4), upper_orange));
+        scene.add_object(quad_new(Vec3(-2, -3, 5), Vec3(4, 0,  0), Vec3(0, 0, -4), lower_teal));
+}
+
 void env_map_test(Scene &scene) {
         int material1 = scene.add_material(dielectric_new(1.5f));
         int material2 = scene.add_material(metal_new(Vec3(0.7f, 0.6f, 0.5f), 0.0f));
 
-        scene.add_sphere(Sphere(Vec3(0, 1, 0), 1.0f, material1));
-        scene.add_sphere(Sphere(Vec3(4, 1, 0), 1.0f, material2));
+        scene.add_object(sphere_new(Vec3(0, 1, 0), 1.0f, material1));
+        scene.add_object(sphere_new(Vec3(4, 1, 0), 1.0f, material2));
 
         scene.set_env_map("../assets/test.hdr");
 }
