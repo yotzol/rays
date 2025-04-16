@@ -9,10 +9,11 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <time.h>
+#include <filesystem>
 
 Renderer::Renderer()
     : gl_texture(0), cuda_texture_resource(nullptr), accumulation_buffer(nullptr), d_scene(nullptr),
-      render_needs_update(true), scene_needs_update(true), final_resolution_idx(1) {}
+      render_needs_update(true), scene_needs_update(true), final_resolution_idx(1), camera_positions(std::vector<Camera>()) {}
 
 Renderer::~Renderer() {
         if (accumulation_buffer)   cudaFree(accumulation_buffer);
@@ -231,10 +232,11 @@ __global__ void render_full_kernel(unsigned int *buffer, RenderConfig config, Ca
 
 void Renderer::render_full_frame(const char file_path[], const Camera &camera) {
         switch (final_resolution_idx) {
-                case 0 : set_final_resolution(1280,  720); break;
-                case 1 : set_final_resolution(1920, 1080); break;
-                case 2 : set_final_resolution(2560, 1440); break;
-                case 3 : set_final_resolution(3840, 2160); break;
+                case 0 : set_final_resolution( 640,  360); break;
+                case 1 : set_final_resolution(1280,  720); break;
+                case 2 : set_final_resolution(1920, 1080); break;
+                case 3 : set_final_resolution(2560, 1440); break;
+                case 4 : set_final_resolution(3840, 2160); break;
                 default: {
                         fprintf(stderr, "Invalid resolution idx: %d", final_resolution_idx);
                         exit(EXIT_FAILURE);
@@ -264,5 +266,73 @@ void Renderer::render_full_frame(const char file_path[], const Camera &camera) {
         // export
         save_png(file_path, h_buffer, config.image_w, config.image_h);
 
-        printf("Export complete.\n");
+        printf("Export complete: %s.\n", file_path);
+}
+
+static inline float lerp(float a, float b, float t) {
+    return a + (b - a) * t;
+}
+
+static const int frames_per_transition = 120;
+
+namespace fs = std::filesystem;
+
+bool create_directory(const char path[]) {
+        try {
+                if (!fs::exists(path)) {
+                        fs::create_directory(path);
+                        printf("Created directory: %s\n", path);
+                } else {
+                        printf("Directory already exists: %s\n", path);
+                }
+                return true;
+        } catch (const fs::filesystem_error &e) {
+                fprintf(stderr, "Error creating directory: %s", e.what());
+                return false;
+        }
+}
+
+void Renderer::render_video(const char name[]) {
+        if (camera_positions.size() < 2) {
+                fprintf(stderr, "Need at least two camera positions for video rendering.\n");
+                return;
+        }
+
+        int n            = camera_positions.size();
+        int total_frames = (n - 1) * frames_per_transition;
+        char frame_name[256];
+
+        if (!create_directory(name)) return;
+
+        for (int frame_idx = 0; frame_idx < total_frames; frame_idx++) {
+                // determine indexes
+                int trans_idx = frame_idx / frames_per_transition;
+                int local_idx = frame_idx % frames_per_transition;
+
+                float t = (float)local_idx / (frames_per_transition - 1);  // t from 0 to 1
+
+                const Camera &cam_a = camera_positions[trans_idx];
+                const Camera &cam_b = camera_positions[trans_idx + 1];
+
+                // create new camera for this frame
+                Camera cam_interp;
+                cam_interp.aspect_ratio = cam_a.aspect_ratio;
+
+                // interpolate
+                cam_interp.origin       = lerp(cam_a.origin,     cam_b.origin,     t);
+                cam_interp.yaw          = lerp(cam_a.yaw,        cam_b.yaw,        t);
+                cam_interp.pitch        = lerp(cam_a.pitch,      cam_b.pitch,      t);
+                cam_interp.roll         = lerp(cam_a.roll,       cam_b.roll,       t);
+                cam_interp.vfov         = lerp(cam_a.vfov,       cam_b.vfov,       t);
+                cam_interp.aperture     = lerp(cam_a.aperture,   cam_b.aperture,   t);
+                cam_interp.focus_dist   = lerp(cam_a.focus_dist, cam_b.focus_dist, t);
+
+                cam_interp.update_camera();
+
+                // render the frame
+                snprintf(frame_name, sizeof(frame_name), "%s/frame_%05d.png", name, frame_idx);
+                render_full_frame(frame_name, cam_interp);
+        }
+
+        printf("Video rendering complete: %s\n", name);
 }

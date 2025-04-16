@@ -49,7 +49,7 @@ class __align__(16) Camera {
         __host__ Camera(float vfov = 90.0f, float aspect_ratio = 2.0f);
 
         // advanced camera constructor
-        __host__ Camera(Vec3 lookfrom, Vec3 lookat, Vec3 vup, float vfov, float aspect_ratio,
+        __host__ Camera(Vec3 lookfrom, Vec3 lookat, float vfov, float aspect_ratio,
                                    float aperture = 0.0f, float focus_dist = 1.0f);
 
         // generate a ray from the camera through a given pixel

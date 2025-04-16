@@ -1,16 +1,16 @@
 #include "gui.cuh"
 #include "window.cuh"
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <thread>
 
 // forward declarations
 void setup_imgui_style();
 void render_ui(Renderer &renderer, Camera &camera);
 
 namespace gui {
-
-bool button_export_clicked = false;
 
 void setup_imgui() {
         IMGUI_CHECKVERSION();
@@ -88,11 +88,14 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::SetCursorPos(ImVec2(avail_size.x - 190, 10));
         ImGui::BeginGroup();
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.4f));
-        ImGui::BeginChild("CameraInfo", ImVec2(200, 100), true);
+        ImGui::BeginChild("CameraInfo", ImVec2(200, 120), true);
         ImGui::TextColored(ImVec4(0.0f, 0.9f, 1.0f, 1.0f), "Camera");
         ImGui::Text("X: %f", camera.origin.x);
         ImGui::Text("Y: %f", camera.origin.y);
         ImGui::Text("Z: %f", camera.origin.z);
+        ImGui::Text("Yaw:\t%f", camera.yaw);
+        ImGui::Text("Pitch:\t%f", camera.pitch);
+        ImGui::Text("Roll:\t%f", camera.roll);
         ImGui::EndChild();
         ImGui::PopStyleColor();
         ImGui::EndGroup();
@@ -116,7 +119,7 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::Text("Bounces: %d", renderer.config.max_depth);
         ImGui::SliderInt("##Bounces", &renderer.config.max_depth, 1, 128);
 
-        static const char *resolutions[] = {"1280x720", "1920x1080", "2560x1440", "3840x2160"};
+        static const char *resolutions[] = {"640x360", "1280x720", "1920x1080", "2560x1440", "3840x2160"};
         ImGui::Text("Resolution");
         ImGui::Combo("##Resolution", &renderer.final_resolution_idx, resolutions, IM_ARRAYSIZE(resolutions));
         ImGui::Spacing();
@@ -141,11 +144,35 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.0f, 0.6f, 0.6f, 1.0f));
 
         if (ImGui::Button("RENDER", ImVec2(100, 30))) {
-                printf("BUTTON: Export clicked.\n");
+                printf("BUTTON: Export frame clicked.\n");
 
                 if (!window::is_exporting.load()) {
-                        printf("\t- Export button flag set to TRUE.\n");
-                        gui::button_export_clicked = true;
+                        printf("\t- Exporting full quality image.\n");
+                        window::is_exporting.store(true);
+
+                        std::thread render_thread([&renderer, &camera]() {
+                                renderer.render_full_frame("output.png", camera);
+                                window::is_exporting.store(false);
+                        });
+                        render_thread.detach();
+                } else {
+                        printf("\t- IGNORED: already exporting.\n");
+                }
+        }
+
+        ImGui::SameLine(120);
+        if (ImGui::Button("RENDER VIDEO", ImVec2(100, 30))) {
+                printf("BUTTON: Export video clicked.\n");
+
+                if (!window::is_exporting.load()) {
+                        printf("\t- Exporting full quality image.\n");
+                        window::is_exporting.store(true);
+
+                        std::thread render_thread([&renderer, &camera]() {
+                                renderer.render_video("output");
+                                window::is_exporting.store(false);
+                        });
+                        render_thread.detach();
                 } else {
                         printf("\t- IGNORED: already exporting.\n");
                 }
@@ -153,11 +180,19 @@ void render_ui(Renderer &renderer, Camera &camera) {
 
         ImGui::PopStyleColor(3);
 
-        ImGui::SameLine(120);
+        ImGui::SameLine(230);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.3f, 1.0f));
         if (ImGui::Button("RESET", ImVec2(100, 30))) {
                 printf("BUTTON: Reset clicked.\n");
                 renderer.render_needs_update = true;
+        }
+        ImGui::PopStyleColor();
+
+        ImGui::SameLine(340);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.3f, 1.0f));
+        if (ImGui::Button("ADD KEYFRAME", ImVec2(100, 30))) {
+                printf("BUTTON: Keyframe clicked.\n");
+                renderer.camera_positions.push_back(camera);
         }
         ImGui::PopStyleColor();
 

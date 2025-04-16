@@ -22,7 +22,7 @@ __host__ Camera::Camera(float vfov, float aspect_ratio) {
         update_camera();
 }
 
-__host__ Camera::Camera(Vec3 lookfrom, Vec3 lookat, Vec3 vup, float vfov, float aspect_ratio, float aperture,
+__host__ Camera::Camera(Vec3 lookfrom, Vec3 lookat, float vfov, float aspect_ratio, float aperture,
                         float focus_dist) {
         this->vfov         = vfov;
         this->aspect_ratio = aspect_ratio;
@@ -61,16 +61,20 @@ __device__ Ray Camera::get_ray(float s, float t, RandState *rand_state) const {
         return Ray(origin + rd, lower_left_corner + horizontal * s + vertical * t - origin - rd, time);
 }
 
+
+const Vec3 vec_up          = Vec3(0.0f, 1.0f, 0.0f);
+const Vec3 cancel_vertical = Vec3(1.0f, 0.0f, 1.0f);
+
 __host__ void Camera::move(CameraMovement direction) {
         float velocity = movement_speed;
 
         switch (direction) {
-                case CameraMovement::FORWARD : origin -= w * velocity; break;
-                case CameraMovement::BACKWARD: origin += w * velocity; break;
-                case CameraMovement::LEFT    : origin -= u * velocity; break;
-                case CameraMovement::RIGHT   : origin += u * velocity; break;
-                case CameraMovement::UP      : origin += v * velocity; break;
-                case CameraMovement::DOWN    : origin -= v * velocity; break;
+                case CameraMovement::FORWARD : origin -= w * cancel_vertical * velocity; break;
+                case CameraMovement::BACKWARD: origin += w * cancel_vertical * velocity; break;
+                case CameraMovement::LEFT    : origin -= u * cancel_vertical * velocity; break;
+                case CameraMovement::RIGHT   : origin += u * cancel_vertical * velocity; break;
+                case CameraMovement::UP      : origin += vec_up * velocity; break;
+                case CameraMovement::DOWN    : origin -= vec_up * velocity; break;
         }
 
         // update camera parameters after movement
@@ -86,7 +90,7 @@ __host__ void Camera::process_mouse_movement(float x_offset, float y_offset, boo
 
         // prevent gimbal lock by constraining pitch
         if (constrain_pitch) {
-                if (pitch > 89.0f) pitch = 89.0f;
+                if (pitch >  89.0f) pitch =  89.0f;
                 if (pitch < -89.0f) pitch = -89.0f;
         }
 

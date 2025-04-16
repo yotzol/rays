@@ -3,7 +3,6 @@
 #include "material.cuh"
 #include "ray.cuh"
 
-#include <cmath>
 
 struct __align__(16) Sphere {
         Ray center;
