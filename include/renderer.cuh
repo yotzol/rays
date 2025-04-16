@@ -9,7 +9,8 @@
 
 // render configuration
 struct RenderConfig {
-        int image_w, image_h;   // final render resolution
+        int image_w, image_h;   // final render dimensions
+        int window_w, window_h; // window preview dimensions
         int samples_per_pixel;  // final render samples per pixel
         int max_depth;
 };
@@ -34,7 +35,7 @@ class Renderer {
         ~Renderer();
 
         // setup opengl texture and cuda buffers
-        void init(const int width, const int height, const RenderConfig render_config);
+        void init(const RenderConfig render_config);
 
         // render frame for real-time display
         void render_single_frame(const Scene &scene, const Camera &camera);
@@ -51,9 +52,6 @@ class Renderer {
         }
 
        private:
-        // window dimensions
-        int window_w, window_h;
-
         cudaGraphicsResource *cuda_texture_resource;
 
         // cuda buffers

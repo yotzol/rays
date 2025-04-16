@@ -18,26 +18,20 @@ int main() {
         srand(time(NULL));
 
         // render settings
-        int image_width  = 640;
-        int image_height = 360;
+        int preview_w = 600;
+        int preview_h = 600;
 
         RenderConfig render_config;
-        render_config.image_w           = image_width;
-        render_config.image_h           = image_height;
+        render_config.window_w          = preview_w;
+        render_config.window_h          = preview_h;
         render_config.samples_per_pixel = 128;
         render_config.max_depth         = 128;
 
-        // camera settings
-        Camera camera(Vec3(0, 0, 9),                            // lookfrom
-                      Vec3(0, 0, 0),                             // lookat
-                      20.0f,                                     // vertical fov
-                      float(image_width) / float(image_height),  // aspect ratio
-                      0.1f,                                      // aperture
-                      10.0f                                      // focus distance
-        );
+        Camera camera;
+        camera.aspect_ratio = (float)preview_w / (float)preview_h;
 
         Scene scene;
-        default_scenes::quads(scene);
+        default_scenes::cornell_box(scene, camera);
         scene.build_bvh();
 
         window::create_window(WINDOW_W, WINDOW_H);
@@ -59,7 +53,7 @@ int main() {
         printf("Found %u CUDA device(s) supporting OpenGL interop\n", gl_device_count);
 
         Renderer renderer = Renderer();
-        renderer.init(WINDOW_W, WINDOW_H, render_config);
+        renderer.init(render_config);
 
         window::main_loop(scene, camera, renderer);
 
