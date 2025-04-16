@@ -5,6 +5,7 @@
 
 #include <cuda_gl_interop.h>
 #include <driver_types.h>
+#include <vector>
 
 // render configuration
 struct RenderConfig {
@@ -26,6 +27,9 @@ class Renderer {
         // counter
         int sample_count;
 
+        // video camera positions
+        std::vector<Camera> camera_positions;
+
         Renderer();
         ~Renderer();
 
@@ -37,6 +41,9 @@ class Renderer {
 
         // render full quality frame for exporting.
         void render_full_frame(const char file_path[], const Camera &camera);
+
+        // render full quality video
+        void render_video(const char name[]);
 
         void inline set_final_resolution(const int width, const int height) {
                 config.image_w = width;

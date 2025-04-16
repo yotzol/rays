@@ -102,3 +102,7 @@ __host__ __device__ __forceinline__ Vec3 normalize(const Vec3 &v) {
 __host__ __device__ __forceinline__ Vec3 cross(const Vec3 &a, const Vec3 &b) {
         return Vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 }
+
+__host__ __device__ __forceinline__ Vec3 lerp(const Vec3 &a, const Vec3 &b, const float t) {
+        return a + (b - a) * t;
+}

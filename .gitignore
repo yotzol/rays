@@ -11,6 +11,7 @@
 !CMakeLists.txt
 
 !renders/*.png
+!renders/*.mp4
 !renders/
 
 !src/

@@ -10,7 +10,6 @@
 #include <atomic>
 #include <cuda_gl_interop.h>
 #include <stdio.h>
-#include <thread>
 
 namespace window {
 
@@ -43,19 +42,6 @@ static bool handle_camera_movement(Camera &camera);
 void main_loop(Scene &scene, Camera &camera, Renderer &renderer) {
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
-
-                // full quality render (spawn thread)
-                if (gui::button_export_clicked && !is_exporting.load()) {
-                        printf("Exporting full quality image.\n");
-                        gui::button_export_clicked = false;
-                        is_exporting.store(true);
-
-                        std::thread render_thread([&renderer, &camera]() {
-                                renderer.render_full_frame("output.png", camera);
-                                is_exporting.store(false);
-                        });
-                        render_thread.detach();
-                }
 
                 // real-time render (if not exporting)
                 if (!is_exporting.load()) {

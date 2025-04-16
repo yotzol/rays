@@ -18,8 +18,8 @@ int main() {
         srand(time(NULL));
 
         // render settings
-        int image_width  = 1080;
-        int image_height = 720;
+        int image_width  = 640;
+        int image_height = 360;
 
         RenderConfig render_config;
         render_config.image_w           = image_width;
@@ -28,9 +28,8 @@ int main() {
         render_config.max_depth         = 128;
 
         // camera settings
-        Camera camera(Vec3(13, 2, 3),                            // lookfrom
-                      Vec3(0, 0, 0),                             // lookat
-                      Vec3(0, 1, 0),                             // up vector
+        Camera camera(Vec3(13, 1, 0),                            // lookfrom
+                      Vec3(0, 1, 0),                             // lookat
                       20.0f,                                     // vertical fov
                       float(image_width) / float(image_height),  // aspect ratio
                       0.1f,                                      // aperture
@@ -39,7 +38,6 @@ int main() {
 
         Scene scene;
         default_scenes::moving_spheres(scene);
-        scene.set_env_map("../assets/test.hdr");
         scene.build_bvh();
 
         window::create_window(WINDOW_W, WINDOW_H);
