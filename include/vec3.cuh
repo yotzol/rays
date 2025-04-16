@@ -15,6 +15,15 @@ struct __align__(16) Vec3 {
         __host__ __device__ Vec3(float f) : x(f), y(f), z(f), pad(0) {}
 
         // operator overloading
+        __host__ __device__ __forceinline__ float &operator[](int index) {
+                switch (index) {
+                        case 0 : return x;
+                        case 1 : return y;
+                        case 2 : return z;
+                        default: assert(0 <= index && index <= 2); return x;
+                }
+        }
+
         __host__ __device__ __forceinline__ const float &operator[](int index) const {
                 switch (index) {
                         case 0 : return x;

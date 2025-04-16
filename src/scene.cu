@@ -8,11 +8,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-__host__ void Scene::add_sphere(const Sphere &sphere) {
-        if (num_spheres < MAX_SPHERES) {
-                spheres[num_spheres++] = sphere;
+__host__ void Scene::add_object(const Object &obj) {
+        if (num_objects < MAX_OBJECTS) {
+                objects[num_objects++] = obj;
         }
-        assert(num_spheres < MAX_SPHERES);
+        assert(num_objects < MAX_OBJECTS);
 }
 
 __host__ int Scene::add_material(const Material &material) {
@@ -76,8 +76,8 @@ __device__ bool Scene::hit(const Ray &ray, float t_min, float t_max, HitRecord &
                 if (node.bbox.hit(ray, t_min, t_max)) {
                         if (node.is_leaf) {
                                 for (int i = 0; i < node.leaf.count; i++) {
-                                        int sphere_idx = node.leaf.idx_start + i;
-                                        if (spheres[sphere_idx].hit(ray, t_min, closest_so_far, temp_rec)) {
+                                        int obj_idx = node.leaf.idx_start + i;
+                                        if (objects[obj_idx].hit(ray, t_min, closest_so_far, temp_rec)) {
                                                 hit_anything   = true;
                                                 closest_so_far = temp_rec.t;
                                                 rec            = temp_rec;

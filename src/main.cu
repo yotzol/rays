@@ -28,8 +28,8 @@ int main() {
         render_config.max_depth         = 128;
 
         // camera settings
-        Camera camera(Vec3(13, 1, 0),                            // lookfrom
-                      Vec3(0, 1, 0),                             // lookat
+        Camera camera(Vec3(0, 0, 9),                            // lookfrom
+                      Vec3(0, 0, 0),                             // lookat
                       20.0f,                                     // vertical fov
                       float(image_width) / float(image_height),  // aspect ratio
                       0.1f,                                      // aperture
@@ -37,7 +37,7 @@ int main() {
         );
 
         Scene scene;
-        default_scenes::moving_spheres(scene);
+        default_scenes::quads(scene);
         scene.build_bvh();
 
         window::create_window(WINDOW_W, WINDOW_H);
