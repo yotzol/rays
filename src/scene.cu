@@ -1,6 +1,10 @@
 #include "scene.cuh"
 
+#include "object.cuh"
+#include "utils.cuh"
+
 #include <assert.h>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <cuda_runtime.h>
@@ -8,20 +12,55 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-__host__ void Scene::add_object(const Object &obj) {
-        if (num_objects < MAX_OBJECTS) {
-                objects[num_objects++] = obj;
-        }
+__host__ void Scene::add_object(Object obj, float rotation, Vec3 translation) {
         assert(num_objects < MAX_OBJECTS);
+
+        obj.translation = translation;
+        obj.rotation    = rotation;
+
+        float rad     = radians(rotation);
+        obj.sin_theta = sinf(rad);
+        obj.cos_theta = cosf(rad);
+
+        objects[num_objects++] = obj;
+}
+
+__host__ void Scene::add_object(Object obj, float rotation, Vec3 translation, Vec3 rotation_center) {
+        assert(num_objects < MAX_OBJECTS);
+
+        obj.translation     = translation;
+        obj.rotation        = rotation;
+        obj.rotation_center = rotation_center;
+
+        float rad           = radians(rotation);
+        obj.sin_theta       = sinf(rad);
+        obj.cos_theta       = cosf(rad);
+
+        objects[num_objects++] = obj;
 }
 
 __host__ int Scene::add_material(const Material &material) {
-        if (num_materials < MAX_MATERIALS) {
-                materials[num_materials] = material;
-                return num_materials++;
-        }
         assert(num_materials < MAX_MATERIALS);
-        return -1;
+        materials[num_materials] = material;
+        return num_materials++;
+}
+
+__host__ void Scene::add_box(const Vec3 a, const Vec3 b, const int material_id, float rotation, Vec3 translation) {
+        Vec3 min = Vec3(fmin(a.x, b.x), fmin(a.y, b.y), fmin(a.z, b.z));
+        Vec3 max = Vec3(fmax(a.x, b.x), fmax(a.y, b.y), fmax(a.z, b.z));
+
+        Vec3 center = (min + max) * 0.5f;
+
+        Vec3 dx = Vec3(max.x - min.x, 0, 0);
+        Vec3 dy = Vec3(0, max.y - min.y, 0);
+        Vec3 dz = Vec3(0, 0, max.z - min.z);
+
+        add_object(quad_new(Vec3(min.x, min.y, max.z),  dx,  dy, material_id), rotation, translation, center);  // front
+        add_object(quad_new(Vec3(max.x, min.y, max.z), -dz,  dy, material_id), rotation, translation, center);  // right
+        add_object(quad_new(Vec3(max.x, min.y, min.z), -dx,  dy, material_id), rotation, translation, center);  // back
+        add_object(quad_new(Vec3(min.x, min.y, min.z),  dz,  dy, material_id), rotation, translation, center);  // left
+        add_object(quad_new(Vec3(min.x, max.y, max.z),  dx, -dz, material_id), rotation, translation, center);  // top
+        add_object(quad_new(Vec3(min.x, min.y, min.z),  dx,  dz, material_id), rotation, translation, center);  // bottom
 }
 
 __host__ void Scene::set_env_map(const char path[]) {
@@ -39,7 +78,7 @@ __host__ void Scene::set_env_map(const char path[]) {
         cudaArray *d_array;
         CHECK_CUDA_ERROR(cudaMallocArray(&d_array, &channel_desc, env_w, env_h));
         const int array_size = env_w * env_h * 4 * sizeof(unsigned char);
-        CHECK_CUDA_ERROR(cudaMemcpyToArray(d_array, 0, 0, env_data, array_size, cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERROR(cudaMemcpy(d_array, env_data, array_size, cudaMemcpyHostToDevice));
 
         // resource descriptor
         cudaResourceDesc res_desc{};

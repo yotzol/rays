@@ -3,10 +3,11 @@
 __host__ Object sphere_new(const Vec3 static_center, float radius, const int material_id) {
         Object obj;
 
-        obj.type          = SPHERE;
-        obj.material_id   = material_id;
-        obj.sphere.center = Ray(static_center, Vec3(0.0f, 0.0f, 0.0f));
-        obj.sphere.radius = std::fmax(radius, 0.0f);
+        obj.type            = SPHERE;
+        obj.material_id     = material_id;
+        obj.sphere.center   = Ray(static_center, Vec3(0.0f, 0.0f, 0.0f));
+        obj.sphere.radius   = std::fmax(radius, 0.0f);
+        obj.rotation_center = static_center;
 
         return obj;
 }
@@ -14,10 +15,11 @@ __host__ Object sphere_new(const Vec3 static_center, float radius, const int mat
 __host__ Object sphere_moving(const Vec3 &center1, const Vec3 &center2, float radius, const int material_id) {
         Object obj;
 
-        obj.type          = SPHERE;
-        obj.material_id   = material_id;
-        obj.sphere.center = Ray(center1, center2 - center1);
-        obj.sphere.radius = std::fmax(radius, 0.0f);
+        obj.type            = SPHERE;
+        obj.material_id     = material_id;
+        obj.sphere.center   = Ray(center1, center2 - center1);
+        obj.sphere.radius   = std::fmax(radius, 0.0f);
+        obj.rotation_center = center1;
 
         return obj;
 }

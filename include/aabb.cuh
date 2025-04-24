@@ -17,6 +17,15 @@ struct Aabb {
         __host__ static Aabb from_object(const Object &sphere);
         __host__ static Aabb merge(const Aabb &a, const Aabb &b);
 
+        __host__ __forceinline__ Aabb operator+(const Vec3 &offset) {
+                return Aabb(min + offset, max + offset);
+        }
+
+        __host__ __forceinline__ void operator+=(const Vec3 &offset) {
+                min += offset;
+                max += offset;
+        }
+
        private:
         __host__ void pad();
 };

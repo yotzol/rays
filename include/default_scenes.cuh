@@ -68,7 +68,7 @@ void moving_spheres(Scene &scene, Camera &camera) {
                         Vec3(0, 1, 0),        // lookat
                         20.0f,                // vertical fov
                         camera.aspect_ratio,  // aspect ratio
-                        0.1f,                 // aperture
+                        0.0f,                 // aperture
                         10.0f                 // focus distance
         );
 }
@@ -100,7 +100,7 @@ void simple_light(Scene &scene, Camera &camera) {
         int sphere_material = scene.add_material(lambertian_new(texture_solid(Vec3(0.8f, 0.2f, 1.0f))));
 
         scene.add_object(sphere_new(Vec3(0, -1000, 0), 1000.0f, ground_material));
-        scene.add_object(sphere_new(Vec3(0, 2, 0), 2.0f, sphere_material));
+        scene.add_object(sphere_new(Vec3(0,     2, 0),    2.0f, sphere_material));
 
         int light_material = scene.add_material(diffuse_light_new(texture_solid(Vec3(4.0f, 4.0f, 4.0f))));
         scene.add_object(quad_new(Vec3(3, 1, -2), Vec3(2, 0, 0), Vec3(0, 2, 0), light_material));
@@ -113,7 +113,7 @@ void simple_light(Scene &scene, Camera &camera) {
                         Vec3(0, 2, 0),   // lookat
                         20.0f,           // vertical fov
                         camera.aspect_ratio,
-                        0.1f,  // aperture
+                        0.0f,  // aperture
                         10.0f  // focus distance
         );
 }
@@ -124,17 +124,20 @@ void cornell_box(Scene &scene, Camera &camera) {
         int green = scene.add_material(lambertian_new(texture_solid(Vec3(0.12f, 0.45f, 0.15f))));
         int light = scene.add_material(diffuse_light_new(texture_solid(Vec3(15.0f, 15.0f, 15.0f))));
 
-        scene.add_object(quad_new(Vec3(555, 0  , 0)  , Vec3(0   , 555, 0), Vec3(0, 0, 555), green));
-        scene.add_object(quad_new(Vec3(0  , 0  , 0)  , Vec3(0   , 555, 0), Vec3(0, 0, 555), red));
-        scene.add_object(quad_new(Vec3(343, 554, 332), Vec3(-130, 0  , 0), Vec3(0, 0, -105), light));
-        scene.add_object(quad_new(Vec3(0  , 0  , 0)  , Vec3(555 , 0  , 0), Vec3(0, 0, 555), white));
-        scene.add_object(quad_new(Vec3(555, 555, 555), Vec3(-555, 0  , 0), Vec3(0, 0, -555), white));
-        scene.add_object(quad_new(Vec3(0  , 0  , 555), Vec3(555 , 0  , 0), Vec3(0, 555, 0), white));
+        scene.add_object(quad_new(Vec3(555,   0,   0), Vec3(   0, 555, 0), Vec3(0,   0,  555), green));
+        scene.add_object(quad_new(Vec3(  0,   0,   0), Vec3(   0, 555, 0), Vec3(0,   0,  555),   red));
+        scene.add_object(quad_new(Vec3(343, 554, 332), Vec3(-130,   0, 0), Vec3(0,   0, -105), light));
+        scene.add_object(quad_new(Vec3(  0,   0,   0), Vec3( 555,   0, 0), Vec3(0,   0,  555), white));
+        scene.add_object(quad_new(Vec3(555, 555, 555), Vec3(-555,   0, 0), Vec3(0,   0, -555), white));
+        scene.add_object(quad_new(Vec3(  0,   0, 555), Vec3( 555,   0, 0), Vec3(0, 555,    0), white));
+
+        scene.add_box(Vec3(0, 0, 0), Vec3(165, 330, 165), white,  15, Vec3(265, 0, 295));
+        scene.add_box(Vec3(0, 0, 0), Vec3(165, 165, 165), white, 360-18, Vec3(130, 0,  65));
 
         scene.no_environment   = true;
         scene.background_color = Vec3(0, 0, 0);
 
-        camera = Camera(Vec3(278, 278, -800), Vec3(278, 278, 0), 40.0f, 1, 0.0f, 10.0f);
+        camera = Camera(Vec3(278, 278, -800), Vec3(278, 278, 0), 40.0f, 1, 0.0f, 1.0f);
 }
 
 }  // namespace default_scenes

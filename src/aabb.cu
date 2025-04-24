@@ -32,6 +32,7 @@ __host__ Aabb Aabb::merge(const Aabb &a, const Aabb &b) {
 }
 
 __host__ Aabb Aabb::from_object(const Object &obj) {
+        Aabb bbox = Aabb();
         switch (obj.type) {
                 case SPHERE: {
                         Vec3 center0 = obj.sphere.center.origin;
@@ -41,8 +42,11 @@ __host__ Aabb Aabb::from_object(const Object &obj) {
                         Vec3 max0 = center0 + Vec3(obj.sphere.radius);
                         Vec3 min1 = center1 - Vec3(obj.sphere.radius);
                         Vec3 max1 = center1 + Vec3(obj.sphere.radius);
-                        return Aabb{Vec3(fminf(min0.x, min1.x), fminf(min0.y, min1.y), fminf(min0.z, min1.z)),
-                                    Vec3(fmaxf(max0.x, max1.x), fmaxf(max0.y, max1.y), fmaxf(max0.z, max1.z))};
+                        bbox      = Aabb{
+                                Vec3(fminf(min0.x, min1.x), fminf(min0.y, min1.y), fminf(min0.z, min1.z)),
+                                Vec3(fmaxf(max0.x, max1.x), fmaxf(max0.y, max1.y), fmaxf(max0.z, max1.z))
+                        };
+                        break;
                 }
                 case QUAD: {
                         Vec3 corners[4] = {obj.quad.q, obj.quad.q + obj.quad.u, obj.quad.q + obj.quad.v,
@@ -57,10 +61,43 @@ __host__ Aabb Aabb::from_object(const Object &obj) {
                                 max_p.y = fmaxf(max_p.y, corners[i].y);
                                 max_p.z = fmaxf(max_p.z, corners[i].z);
                         }
-                        return Aabb(min_p, max_p);
+                        bbox = Aabb(min_p, max_p);
+                        break;
                 }
         }
-        return Aabb();
+
+        if (obj.rotation != 0) {
+                Vec3 min_p      = bbox.min;
+                Vec3 max_p      = bbox.max;
+                Vec3 corners[8] = {Vec3(min_p.x, min_p.y, min_p.z), Vec3(min_p.x, min_p.y, max_p.z),
+                                   Vec3(min_p.x, max_p.y, min_p.z), Vec3(min_p.x, max_p.y, max_p.z),
+                                   Vec3(max_p.x, min_p.y, min_p.z), Vec3(max_p.x, min_p.y, max_p.z),
+                                   Vec3(max_p.x, max_p.y, min_p.z), Vec3(max_p.x, max_p.y, max_p.z)};
+
+                Vec3 new_min = Vec3( INFINITY,  INFINITY,  INFINITY);
+                Vec3 new_max = Vec3(-INFINITY, -INFINITY, -INFINITY);
+
+                // rotate corners
+                for (int i = 0; i < 8; i++) {
+                        Vec3 rel = corners[i] - obj.rotation_center;
+
+                        // world -> object
+                        float new_x =  obj.cos_theta * rel.x + obj.sin_theta * rel.z;
+                        float new_z = -obj.sin_theta * rel.x + obj.cos_theta * rel.z;
+
+                        // object -> world
+                        Vec3 rotated = Vec3(new_x, rel.y, new_z) + obj.rotation_center;
+
+                        for (int c = 0; c < 3; ++c) {
+                                new_min[c] = fminf(new_min[c], rotated[c]);
+                                new_max[c] = fmaxf(new_max[c], rotated[c]);
+                        }
+                }
+                bbox = Aabb(new_min, new_max);
+        }
+
+        bbox += obj.translation;
+        return bbox;
 }
 
 __device__ bool Aabb::hit(const Ray &ray, float t_min, float t_max) const {

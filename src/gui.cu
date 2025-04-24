@@ -114,12 +114,12 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::Separator();
 
         ImGui::Text("Samples: %d", renderer.config.samples_per_pixel);
-        ImGui::SliderInt("##Samples", &renderer.config.samples_per_pixel, 16, 2048);
+        ImGui::SliderInt("##Samples", &renderer.config.samples_per_pixel, 16, 4096);
 
         ImGui::Text("Bounces: %d", renderer.config.max_depth);
         ImGui::SliderInt("##Bounces", &renderer.config.max_depth, 1, 128);
 
-        static const char *resolutions[] = {"640x360", "1280x720", "1920x1080", "2560x1440", "3840x2160", "1920x1920"};
+        static const char *resolutions[] = {"640x360", "1280x720", "1920x1080", "2560x1440", "3840x2160", "1080x1080"};
         ImGui::Text("Resolution");
         ImGui::Combo("##Resolution", &renderer.final_resolution_idx, resolutions, IM_ARRAYSIZE(resolutions));
         ImGui::Spacing();

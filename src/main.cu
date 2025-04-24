@@ -3,7 +3,6 @@
 #include "renderer.cuh"
 #include "scene.cuh"
 #include "utils.cuh"
-#include "vec3.cuh"
 #include "window.cuh"
 
 #include <cstdio>

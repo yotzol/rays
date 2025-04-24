@@ -28,10 +28,14 @@ struct __align__(16) Scene {
         __host__ Scene() : num_objects(0), num_materials(0), root_idx(0), env_map(0), env_w(0), env_h(0), env_channels(0), no_environment(false), background_color(0.0f, 0.0f, 0.0f) {}
 
         // add an object to the scene
-        __host__ void add_object(const Object &sphere);
+        __host__ void add_object(Object obj, float rotation = 0, Vec3 translation = Vec3());
+        __host__ void add_object(Object obj, float rotation, Vec3 translation, Vec3 rotation_center);
 
         // add a material to the scene and return its index
         __host__ int add_material(const Material &material);
+
+        // create box with given material
+        __host__ void add_box(const Vec3 a, const Vec3 b, const int material_id, float rotation = 0, Vec3 translation = Vec3());
 
         // create bvh from objects
         __host__ void build_bvh();

@@ -244,7 +244,7 @@ void Renderer::render_full_frame(const char file_path[], const Camera &camera) {
                 case 2 : set_final_resolution(1920, 1080); break;
                 case 3 : set_final_resolution(2560, 1440); break;
                 case 4 : set_final_resolution(3840, 2160); break;
-                case 5 : set_final_resolution(1920, 1920); break;
+                case 5 : set_final_resolution(1080, 1080); break;
                 default: {
                         fprintf(stderr, "Invalid resolution idx: %d", final_resolution_idx);
                         exit(EXIT_FAILURE);
