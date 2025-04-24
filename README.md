@@ -1,4 +1,4 @@
-![render](renders/7-moving_spheres_textures_FHD.png)
+![render](renders/rtiow2_cornell_box.png)
 
 A GPU accelerated path tracer implementation in CUDA, based on the [Ray Tracing in One Weekend](https://raytracing.github.io/) series.
 
