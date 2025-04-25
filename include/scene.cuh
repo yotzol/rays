@@ -7,8 +7,8 @@
 #include <vector>
 
 // maximum number of objects and materials in the scene
-const size_t MAX_OBJECTS   = 1 << 10;
-const size_t MAX_MATERIALS = 1 << 10;
+const size_t MAX_OBJECTS   = 1 << 12;
+const size_t MAX_MATERIALS = 1 << 12;
 const size_t MAX_NODES     = (MAX_OBJECTS * 2) ;
 
 struct __align__(16) Scene {

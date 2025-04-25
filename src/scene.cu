@@ -15,10 +15,12 @@
 __host__ void Scene::add_object(Object obj, float rotation, Vec3 translation) {
         assert(num_objects < MAX_OBJECTS);
 
-        obj.translation = translation;
-        obj.rotation    = rotation;
+        obj.translation     = translation;
+        float r             = fmod(rotation, 360);
+        obj.rotation        = r > 0 ? r : 360 + r;
+        obj.rotation_center = obj.center();
 
-        float rad     = radians(rotation);
+        float rad     = radians(obj.rotation);
         obj.sin_theta = sinf(rad);
         obj.cos_theta = cosf(rad);
 
@@ -29,7 +31,8 @@ __host__ void Scene::add_object(Object obj, float rotation, Vec3 translation, Ve
         assert(num_objects < MAX_OBJECTS);
 
         obj.translation     = translation;
-        obj.rotation        = rotation;
+        float r             = fmod(rotation, 360);
+        obj.rotation        = r > 0 ? r : 360 + r;
         obj.rotation_center = rotation_center;
 
         float rad           = radians(rotation);
@@ -78,7 +81,7 @@ __host__ void Scene::set_env_map(const char path[]) {
         cudaArray *d_array;
         CHECK_CUDA_ERROR(cudaMallocArray(&d_array, &channel_desc, env_w, env_h));
         const int array_size = env_w * env_h * 4 * sizeof(unsigned char);
-        CHECK_CUDA_ERROR(cudaMemcpy(d_array, env_data, array_size, cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERROR(cudaMemcpyToArray(d_array, 0, 0, env_data, array_size, cudaMemcpyHostToDevice));
 
         // resource descriptor
         cudaResourceDesc res_desc{};

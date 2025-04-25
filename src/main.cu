@@ -30,7 +30,7 @@ int main() {
         camera.aspect_ratio = (float)preview_w / (float)preview_h;
 
         Scene scene;
-        default_scenes::cornell_box(scene, camera);
+        default_scenes::book2_final_scene(scene, camera);
         scene.build_bvh();
 
         window::create_window(WINDOW_W, WINDOW_H);

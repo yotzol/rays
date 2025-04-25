@@ -140,4 +140,74 @@ void cornell_box(Scene &scene, Camera &camera) {
         camera = Camera(Vec3(278, 278, -800), Vec3(278, 278, 0), 40.0f, 1, 0.0f, 1.0f);
 }
 
+void book2_final_scene(Scene &scene, Camera &camera) {
+        // ground boxes
+        int ground_material = scene.add_material(lambertian_new(texture_solid(Vec3(0.48f, 0.83f, 0.53f))));
+        int boxes_per_side  = 20;
+        for (int i = 0; i < boxes_per_side; i++) {
+                for (int j = 0; j < boxes_per_side; j++) {
+                        float w  = 100.0f;
+                        float x0 = -1000.0f + i * w;
+                        float z0 = -1000.0f + j * w;
+                        float y0 = 0.0f;
+                        float x1 = x0 + w;
+                        float y1 = random_float(1.0f, 101.0f);
+                        float z1 = z0 + w;
+                        scene.add_box(Vec3(x0, y0, z0), Vec3(x1, y1, z1), ground_material, 0.0f, Vec3(0, 0, 0));
+                }
+        }
+
+        // Light
+        int light_material = scene.add_material(diffuse_light_new(texture_solid(Vec3(7.0f, 7.0f, 7.0f))));
+        scene.add_object(quad_new(Vec3(123, 554, 147), Vec3(300, 0, 0), Vec3(0, 0, 265), light_material));
+
+        // moving sphere
+        int sphere_material = scene.add_material(lambertian_new(texture_solid(Vec3(0.7f, 0.3f, 0.1f))));
+        Vec3 center1(400, 400, 200);
+        Vec3 center2 = center1 + Vec3(30, 0, 0);
+        scene.add_object(sphere_moving(center1, center2, 50.0f, sphere_material));
+
+        // dielectric sphere
+        int dielectric_material = scene.add_material(dielectric_new(1.5f));
+        scene.add_object(sphere_new(Vec3(260, 150, 45), 50.0f, dielectric_material));
+
+        // metal sphere
+        int metal_material = scene.add_material(metal_new(Vec3(0.8f, 0.8f, 0.9f), 1.0f));
+        scene.add_object(sphere_new(Vec3(0, 150, 145), 50.0f, metal_material));
+
+        // dielectric sphere with lambertian interior (replacing constant medium)
+        int inner_material = scene.add_material(lambertian_new(texture_solid(Vec3(0.2f, 0.4f, 0.9f))));
+        scene.add_object(sphere_new(Vec3(360, 150, 145), 70.0f, dielectric_material));
+        scene.add_object(sphere_new(Vec3(360, 150, 145), 69.0f, inner_material));
+
+        // earth sphere
+        int earth_material = scene.add_material(lambertian_new(texture_image("../assets/earth2.png")));
+        scene.add_object(sphere_new(Vec3(400, 200, 400), 100.0f, earth_material));
+
+        // metal sphere (replacing noise texture sphere)
+        int noise_material = scene.add_material(metal_new(Vec3(0.7f, 0.7f, 0.7f), 0.2f));
+        scene.add_object(sphere_new(Vec3(220, 280, 300), 80.0f, noise_material));
+
+        // small white spheres
+        int white_material = scene.add_material(lambertian_new(texture_solid(Vec3(0.73f, 0.73f, 0.73f))));
+        int ns             = 1000;
+        for (int j = 0; j < ns; j++) {
+                Vec3 center = Vec3(random_float(0.0f, 165.0f), random_float(0.0f, 165.0f), random_float(0.0f, 165.0f));
+                scene.add_object(sphere_new(center, 10.0f, white_material), 15, Vec3(-100, 270, 395), Vec3(0,0,0));
+        }
+
+        // scene settings
+        scene.no_environment   = true;
+        scene.background_color = Vec3(0, 0, 0);
+
+        // camera
+        camera = Camera(Vec3(478, 278, -600),  // lookfrom
+                        Vec3(278, 278, 0),     // lookat
+                        40.0f,                 // vertical fov
+                        camera.aspect_ratio,   // aspect ratio
+                        0.0f,                  // aperture
+                        10.0f                  // focus distance
+        );
+}
+
 }  // namespace default_scenes
