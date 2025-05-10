@@ -1,22 +1,22 @@
-#include "camera.cuh"
-#include "default_scenes.cuh"
-#include "renderer.cuh"
-#include "scene.cuh"
-#include "utils.cuh"
-#include "window.cuh"
+#include "camera.hpp"
+#include "default_scenes.hpp"
+#include "renderer.hpp"
+#include "scene.hpp"
+#include "utils.hpp"
+#include "window.hpp"
 
 #include <cstdio>
 #include <stdio.h>
 #include <time.h>
 
 const int WINDOW_W = 1280;
-const int WINDOW_H =  720;
+const int WINDOW_H = 720;
 
 int main() {
-        // seed the random number generator
-        srand(time(NULL));
+        // Seed the random number generator.
+        srand((unsigned int)time(NULL));
 
-        // render settings
+        // Render settings.
         int preview_w = 600;
         int preview_h = 600;
 
@@ -37,10 +37,10 @@ int main() {
 
         CHECK_CUDA_ERROR(cudaSetDevice(0));
 
-        // force cuda context creation (cudafree(0) is a no-op that initializes the context)
+        // Force CUDA context creation (cudaFree(0) is a no-op that initializes the context).
         CHECK_CUDA_ERROR(cudaFree(0));
 
-        // query cuda devices compatible with opengl
+        // Query CUDA devices compatible with opengl.
         unsigned int gl_device_count;
         CHECK_CUDA_ERROR(cudaGLGetDevices(&gl_device_count, nullptr, 0, cudaGLDeviceListAll));
         if (gl_device_count == 0) {

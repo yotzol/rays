@@ -1,4 +1,4 @@
-#include "aabb.cuh"
+#include "aabb.hpp"
 
 __host__ Aabb::Aabb(const Object *objects, const std::vector<int> &idxs, int start, int end) {
         if (start >= end) {
@@ -7,9 +7,9 @@ __host__ Aabb::Aabb(const Object *objects, const std::vector<int> &idxs, int sta
                 return;
         }
 
-        Aabb box = Aabb::from_object(objects[idxs[start]]);
+        Aabb box = Aabb::from_object(objects[idxs[(size_t)start]]);
         for (int i = start + 1; i < end; ++i) {
-                Aabb obj_box = Aabb::from_object(objects[idxs[i]]);
+                Aabb obj_box = Aabb::from_object(objects[idxs[(size_t)i]]);
                 box          = Aabb::merge(box, obj_box);
         }
 
@@ -35,17 +35,15 @@ __host__ Aabb Aabb::from_object(const Object &obj) {
         Aabb bbox = Aabb();
         switch (obj.type) {
                 case SPHERE: {
-                        Vec3 center0 = obj.sphere.center.origin;
-                        Vec3 center1 = obj.sphere.center.origin + obj.sphere.center.direction;
+                        Vec3 center0 = obj.sphere.center.orig;
+                        Vec3 center1 = obj.sphere.center.orig + obj.sphere.center.dir;
 
                         Vec3 min0 = center0 - Vec3(obj.sphere.radius);
                         Vec3 max0 = center0 + Vec3(obj.sphere.radius);
                         Vec3 min1 = center1 - Vec3(obj.sphere.radius);
                         Vec3 max1 = center1 + Vec3(obj.sphere.radius);
-                        bbox      = Aabb{
-                                Vec3(fminf(min0.x, min1.x), fminf(min0.y, min1.y), fminf(min0.z, min1.z)),
-                                Vec3(fmaxf(max0.x, max1.x), fmaxf(max0.y, max1.y), fmaxf(max0.z, max1.z))
-                        };
+                        bbox      = Aabb{Vec3(fminf(min0.x, min1.x), fminf(min0.y, min1.y), fminf(min0.z, min1.z)),
+                                    Vec3(fmaxf(max0.x, max1.x), fmaxf(max0.y, max1.y), fmaxf(max0.z, max1.z))};
                         break;
                 }
                 case QUAD: {
@@ -74,18 +72,18 @@ __host__ Aabb Aabb::from_object(const Object &obj) {
                                    Vec3(max_p.x, min_p.y, min_p.z), Vec3(max_p.x, min_p.y, max_p.z),
                                    Vec3(max_p.x, max_p.y, min_p.z), Vec3(max_p.x, max_p.y, max_p.z)};
 
-                Vec3 new_min = Vec3( INFINITY,  INFINITY,  INFINITY);
+                Vec3 new_min = Vec3(INFINITY, INFINITY, INFINITY);
                 Vec3 new_max = Vec3(-INFINITY, -INFINITY, -INFINITY);
 
-                // rotate corners
+                // Rotate corners.
                 for (int i = 0; i < 8; i++) {
                         Vec3 rel = corners[i] - obj.rotation_center;
 
-                        // world -> object
-                        float new_x =  obj.cos_theta * rel.x + obj.sin_theta * rel.z;
+                        // World -> object.
+                        float new_x = obj.cos_theta * rel.x + obj.sin_theta * rel.z;
                         float new_z = -obj.sin_theta * rel.x + obj.cos_theta * rel.z;
 
-                        // object -> world
+                        // Object -> world.
                         Vec3 rotated = Vec3(new_x, rel.y, new_z) + obj.rotation_center;
 
                         for (int c = 0; c < 3; ++c) {
@@ -98,36 +96,6 @@ __host__ Aabb Aabb::from_object(const Object &obj) {
 
         bbox += obj.translation;
         return bbox;
-}
-
-__device__ bool Aabb::hit(const Ray &ray, float t_min, float t_max) const {
-        for (int axis = 0; axis < 3; ++axis) {
-                // extract components for this axis
-                float origin = ray.origin[axis];
-                float dir    = ray.direction[axis];
-                float min_b  = min[axis];
-                float max_b  = max[axis];
-
-                // compute intersection t-values for this slab
-                float inv_dir = 1.0f / dir;  // inverse direction for efficiency
-                float t0      = (min_b - origin) * inv_dir;
-                float t1      = (max_b - origin) * inv_dir;
-
-                // swap t0 and t1 if direction is negative
-                if (inv_dir < 0.0f) {
-                        float temp = t0;
-                        t0         = t1;
-                        t1         = temp;
-                }
-
-                // update interval
-                t_min = t0 > t_min ? t0 : t_min;
-                t_max = t1 < t_max ? t1 : t_max;
-
-                // if t_min exceeds t_max, no intersection is possible
-                if (t_max <= t_min) return false;
-        }
-        return true;
 }
 
 __host__ void Aabb::pad() {

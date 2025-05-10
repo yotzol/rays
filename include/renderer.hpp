@@ -1,17 +1,16 @@
 #pragma once
 
-#include "camera.cuh"
-#include "scene.cuh"
+#include "camera.hpp"
+#include "scene.hpp"
 
 #include <cuda_gl_interop.h>
-#include <driver_types.h>
 #include <vector>
 
-// render configuration
+// Render configuration.
 struct RenderConfig {
-        int image_w, image_h;   // final render dimensions
-        int window_w, window_h; // window preview dimensions
-        int samples_per_pixel;  // final render samples per pixel
+        int image_w, image_h;    // Final render dimensions.
+        int window_w, window_h;  // Window preview dimensions.
+        int samples_per_pixel;   // Final render samples per pixel.
         int max_depth;
 };
 
@@ -21,29 +20,28 @@ class Renderer {
         GLuint gl_texture;
         int final_resolution_idx;
 
-        // flags
+        // Flags.
         bool render_needs_update;
         bool scene_needs_update;
 
-        // counter
-        int sample_count;
+        int sample_count;  // Counter.
 
-        // video camera positions
+        // Camera video keyframes.
         std::vector<Camera> camera_positions;
 
         Renderer();
         ~Renderer();
 
-        // setup opengl texture and cuda buffers
+        // Setup OpenGL texture and CUDA buffers.
         void init(const RenderConfig render_config);
 
-        // render frame for real-time display
+        // Render a single pass into the accumulation buffer for real-time visualization.
         void render_single_frame(const Scene &scene, const Camera &camera);
 
-        // render full quality frame for exporting.
+        // Render full quality frame for exporting.
         void render_full_frame(const char file_path[], const Camera &camera);
 
-        // render full quality video
+        // Render full quality video.
         void render_video(const char name[]);
 
         void inline set_final_resolution(const int width, const int height) {
@@ -54,7 +52,6 @@ class Renderer {
        private:
         cudaGraphicsResource *cuda_texture_resource;
 
-        // cuda buffers
-        float4 *accumulation_buffer;
-        Scene *d_scene;
+        float4 *accumulation_buffer;  // CUDA buffer.
+        Scene *d_scene;               // Device scene.
 };

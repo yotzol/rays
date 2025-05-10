@@ -1,5 +1,5 @@
-#include "gui.cuh"
-#include "window.cuh"
+#include "gui.hpp"
+#include "window.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -63,7 +63,7 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGuiIO &io          = ImGui::GetIO();
         ImVec2 viewport_size = io.DisplaySize;
 
-        // main window
+        // Main window.
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(viewport_size);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -72,19 +72,19 @@ void render_ui(Renderer &renderer, Camera &camera) {
                              ImGuiWindowFlags_NoMove);
         ImGui::PopStyleVar();
 
-        // two main columns
+        // Two main columns.
         ImGui::Columns(2, "MainColumns", true);
 
         const int bottom_offset = -63;
 
-        // left column: display the rendered scene
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));  // Transparent background
+        // Left column: display the rendered scene.
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));  // Transparent background.
         ImGui::BeginChild("RenderArea", ImVec2(0, bottom_offset), false, ImGuiWindowFlags_NoScrollbar);
 
         ImVec2 avail_size = ImGui::GetContentRegionAvail();
         ImGui::Image(renderer.gl_texture, avail_size, ImVec2(0, 1), ImVec2(1, 0));
 
-        // camera info display at top-right corner
+        // Camera info display at top-right corner.
         ImGui::SetCursorPos(ImVec2(avail_size.x - 190, 10));
         ImGui::BeginGroup();
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.4f));
@@ -103,11 +103,11 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::EndChild();
         ImGui::PopStyleColor();
 
-        // right column: settings panel
+        // Right column: settings panel.
         ImGui::NextColumn();
         ImGui::BeginChild("SettingsContent", ImVec2(0, bottom_offset), true);
 
-        // quality section
+        // Quality section.
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.9f, 1.0f, 1.0f));
         ImGui::TextUnformatted("QUALITY SETTINGS");
         ImGui::PopStyleColor();
@@ -124,18 +124,18 @@ void render_ui(Renderer &renderer, Camera &camera) {
         ImGui::Combo("##Resolution", &renderer.final_resolution_idx, resolutions, IM_ARRAYSIZE(resolutions));
         ImGui::Spacing();
 
-        // controls section
+        // Controls section.
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.9f, 1.0f, 1.0f));
         ImGui::TextUnformatted("CONTROLS");
         ImGui::PopStyleColor();
         ImGui::Separator();
 
         ImGui::Text("Movement speed: %f", camera.movement_speed);
-        ImGui::SliderFloat("##MovementSpeed", &camera.movement_speed, 0.1, 50);
+        ImGui::SliderFloat("##MovementSpeed", &camera.movement_speed, 0.1f, 50);
 
         ImGui::Spacing();
 
-        // environment section
+        // Environment section.
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.9f, 1.0f, 1.0f));
         ImGui::TextUnformatted("ENVIRONMENT");
         ImGui::PopStyleColor();
@@ -144,7 +144,7 @@ void render_ui(Renderer &renderer, Camera &camera) {
 
         ImGui::EndChild();
 
-        // bottom bar
+        // Bottom bar.
         ImGui::Columns(1);
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.07f, 0.07f, 0.12f, 1.0f));
         ImGui::BeginChild("BottomBar", ImVec2(0, 45), true, ImGuiWindowFlags_NoScrollbar);
@@ -179,7 +179,7 @@ void render_ui(Renderer &renderer, Camera &camera) {
                         printf("\t- Exporting full quality image.\n");
                         window::is_exporting.store(true);
 
-                        std::thread render_thread([&renderer, &camera]() {
+                        std::thread render_thread([&renderer]() {
                                 renderer.render_video("output");
                                 window::is_exporting.store(false);
                         });

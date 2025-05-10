@@ -4,7 +4,6 @@
 !LICENSE
 !README.md
 
-!.envrc
 !flake.nix
 !flake.lock
 
@@ -15,10 +14,13 @@
 !renders/
 
 !src/
+!src/**/
+!src/**/*.cpp
+!src/**/*.cu
+
 !include/
+!include/**/
+!include/**/*.hpp
 
 !external/
 !external/imgui/
-
-!*.cu
-!*.cuh

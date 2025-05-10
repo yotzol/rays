@@ -1,7 +1,7 @@
 #pragma once
 
-#include "camera.cuh"
-#include "renderer.cuh"
+#include "camera.hpp"
+#include "renderer.hpp"
 
 namespace gui {
 

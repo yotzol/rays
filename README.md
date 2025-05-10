@@ -27,7 +27,7 @@ set(CMAKE_CUDA_ARCHITECTURES 75)  # Change this to match your GPU architecture
 ```
 $ mkdir build
 $ cd build
-$ cmake -G Ninja ..
+$ cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
 $ ninja
 ```
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "camera.cuh"
-#include "renderer.cuh"
-#include "scene.cuh"
+#include "camera.hpp"
+#include "renderer.hpp"
+#include "scene.hpp"
 
 #include <GLFW/glfw3.h>
 #include <atomic>

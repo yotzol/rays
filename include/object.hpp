@@ -1,8 +1,8 @@
 #pragma once
 
-#include "material.cuh"
-#include "ray.cuh"
-#include "utils.cuh"
+#include "material.hpp"
+#include "vec3.hpp"
+#include "utils.hpp"
 
 enum ObjectType { SPHERE, QUAD };
 
@@ -39,7 +39,7 @@ struct __align__(16) Object {
 
         __host__ __device__ __forceinline__ Vec3 center() const {
                 switch (type) {
-                        case SPHERE: return translation + sphere.center.origin;
+                        case SPHERE: return translation + sphere.center.orig;
                         case QUAD  : return translation + quad.q + (quad.u + quad.v) * 0.5;
                 };
                 return Vec3();
